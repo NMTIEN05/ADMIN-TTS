@@ -1,26 +1,35 @@
+// main.route.tsx
 import { createBrowserRouter } from "react-router-dom";
 import Dashbroad from "../components/common/Dashbroad";
 import Content from "../components/layouts/MainLayout";
 
-import UserForm from "../pages/userList";
 import UserList from "../pages/userList";
+import CategoryPage from "../pages/admin/categories";
+import ProductPage from "@/pages/admin/products";
 
 export const router = createBrowserRouter([
   {
     path: "/dashboard",
-    element: <Dashbroad />,   // Layout chính có <Outlet />
+    element: <Dashbroad />,
     children: [
       {
-        path: "",             // Route con trống, để chứa children
-        element: <Content />, // Layout con có <Outlet />
+        path: "",
+        element: <Content />,
         children: [
           {
-            path: "users/list",    // /dashboard/users
-            element: <UserList />, // Trang users
+            path: "users/list",
+            element: <UserList />,
+          },
+          {
+            path: "categories",
+            element: <CategoryPage />,
+          },
+          {
+            path: "products",
+            element: <ProductPage />,
           },
         ],
       },
     ],
   },
 ]);
-

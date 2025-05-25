@@ -1,10 +1,12 @@
-// src/layouts/DashLayout.tsx
+// Dashbroad.tsx
 import { Layout, Menu } from 'antd';
 import { Outlet, useNavigate } from 'react-router-dom';
 import {
   UserOutlined,
   VideoCameraOutlined,
   UploadOutlined,
+  AppstoreOutlined,
+  DatabaseOutlined,
 } from '@ant-design/icons';
 import React, { useState } from 'react';
 
@@ -15,7 +17,7 @@ const Dashbroad: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <Layout style={{ minHeight: '100vh'  }}>
+    <Layout style={{ minHeight: '100vh' }}>
       <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
         <div style={{ height: 60, margin: 16, background: 'rgba(255, 255, 255, 0.3)' }} />
         <Menu
@@ -24,24 +26,26 @@ const Dashbroad: React.FC = () => {
           defaultSelectedKeys={['/dashboard/users']}
           onClick={({ key }) => navigate(key)}
           items={[
-            { key: '/dashboard/users', icon: <UserOutlined />, label: 'Người dùng' },
+            { key: '/dashboard/users/list', icon: <UserOutlined />, label: 'Người dùng' },
             { key: '/dashboard/videos', icon: <VideoCameraOutlined />, label: 'Video' },
             { key: '/dashboard/uploads', icon: <UploadOutlined />, label: 'Upload' },
+            { key: '/dashboard/categories', icon: <AppstoreOutlined />, label: 'Danh mục' },
+            { key: '/dashboard/products', icon: <DatabaseOutlined />, label: 'Sản phẩm' },
           ]}
         />
       </Sider>
 
-      <Layout style={{ flex: 1}}>
+      <Layout style={{ flex: 1 }}>
         <Content
           style={{
             padding: 16,
             background: '#fff',
             height: '100%',
-             width: '100%' ,
+            width: '100%',
             overflow: 'auto',
           }}
         >
-          <Outlet/>
+          <Outlet />
         </Content>
       </Layout>
     </Layout>
