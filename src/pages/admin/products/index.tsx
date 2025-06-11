@@ -70,9 +70,13 @@ const ProductPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    await deleteBook(id);
-    message.success("🗑️ Đã xoá sản phẩm");
-    fetchData();
+    try {
+      await deleteBook(id);
+      message.success("🗑️ Đã xoá sản phẩm");
+      fetchData();
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || "Không thể xoá sản phẩm");
+    }
   };
 
   return (
@@ -166,6 +170,7 @@ const ProductPage = () => {
         title={editing ? "✏️ Sửa sản phẩm" : "➕ Thêm sản phẩm"}
         onCancel={() => {
           setOpen(false);
+          setEditing(null); // Đảm bảo reset editing khi đóng modal
           form.resetFields();
         }}
         onOk={handleSubmit}
@@ -173,20 +178,50 @@ const ProductPage = () => {
         cancelText="Huỷ"
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="title" label="Tên sản phẩm" rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item name="price" label="Giá" rules={[{ required: true }]}><InputNumber style={{ width: "100%" }} /></Form.Item>
-          <Form.Item name="stock_quantity" label="Tồn kho" rules={[{ required: true }]}><InputNumber style={{ width: "100%" }} /></Form.Item>
-          <Form.Item name="publisher" label="NXB" rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item name="publish_year" label="Năm phát hành" rules={[{ required: true }]}><DatePicker style={{ width: "100%" }} /></Form.Item>
-          <Form.Item name="description" label="Mô tả" rules={[{ required: true }]}><Input.TextArea rows={3} /></Form.Item>
-          <Form.Item name="category_id" label="Danh mục" rules={[{ required: true }]}>
+          <Form.Item name="title" label="Tên sản phẩm" rules={[{ required: true, message: "Vui lòng nhập tên sản phẩm" }]}><Input /></Form.Item>
+          <Form.Item
+            name="price"
+            label="Giá"
+            rules={[
+              { required: true, message: "Vui lòng nhập giá" },
+              { type: "number", min: 0, message: "Giá phải >= 0" }
+            ]}
+          ><InputNumber style={{ width: "100%" }} /></Form.Item>
+          <Form.Item
+            name="stock_quantity"
+            label="Tồn kho"
+            rules={[
+              { required: true, message: "Vui lòng nhập tồn kho" },
+              { type: "number", min: 0, message: "Tồn kho phải >= 0" }
+            ]}
+          ><InputNumber style={{ width: "100%" }} /></Form.Item>
+          <Form.Item name="publisher" label="NXB" rules={[{ required: true, message: "Vui lòng nhập NXB" }]}><Input /></Form.Item>
+          <Form.Item
+            name="publish_year"
+            label="Năm phát hành"
+            rules={[
+              { required: true, message: "Vui lòng chọn năm phát hành" },
+              {
+                validator: (_, value) => {
+                  if (!value) return Promise.reject("Vui lòng chọn năm phát hành");
+                  const year = value.year?.() || value.get?.("year");
+                  if (year < 1900 || year > new Date().getFullYear() + 1) {
+                    return Promise.reject("Năm phát hành không hợp lệ");
+                  }
+                  return Promise.resolve();
+                }
+              }
+            ]}
+          ><DatePicker picker="year" style={{ width: "100%" }} /></Form.Item>
+          <Form.Item name="description" label="Mô tả" rules={[{ required: true, message: "Vui lòng nhập mô tả" }]}><Input.TextArea rows={3} /></Form.Item>
+          <Form.Item name="category_id" label="Danh mục" rules={[{ required: true, message: "Chọn danh mục" }]}>
             <Select placeholder="Chọn danh mục">
               {categories.map(c => (
                 <Select.Option key={c._id} value={c._id}>{c.name}</Select.Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="author_id" label="Tác giả" rules={[{ required: true }]}>
+          <Form.Item name="author_id" label="Tác giả" rules={[{ required: true, message: "Chọn tác giả" }]}>
             <Select placeholder="Chọn tác giả">
               {authors.map(a => (
                 <Select.Option key={a._id} value={a._id}>{a.name}</Select.Option>

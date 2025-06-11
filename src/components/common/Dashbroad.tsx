@@ -7,6 +7,8 @@ import {
   UploadOutlined,
   AppstoreOutlined,
   DatabaseOutlined,
+  ShoppingCartOutlined,
+  ShoppingOutlined,
 } from '@ant-design/icons';
 import React, { useState } from 'react';
 
@@ -31,6 +33,8 @@ const Dashbroad: React.FC = () => {
             { key: '/dashboard/uploads', icon: <UploadOutlined />, label: 'Upload' },
             { key: '/dashboard/categories', icon: <AppstoreOutlined />, label: 'Danh mục' },
             { key: '/dashboard/products', icon: <DatabaseOutlined />, label: 'Sản phẩm' },
+            { key: '/dashboard/orders', icon: <ShoppingOutlined />, label: 'Đơn hàng' }, // Thêm menu Đơn hàng
+            { key: '/dashboard/carts', icon: <ShoppingCartOutlined />, label: 'Giỏ hàng' }, // Thêm menu Giỏ hàng
           ]}
         />
       </Sider>

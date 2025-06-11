@@ -6,6 +6,8 @@ import Content from "../components/layouts/MainLayout";
 import UserList from "../pages/userList";
 import CategoryPage from "../pages/admin/categories";
 import ProductPage from "@/pages/admin/products";
+import ListOrders from "@/pages/admin/order/Listorder";
+import OrderDetail from "@/pages/admin/order/OrderDetail";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +29,14 @@ export const router = createBrowserRouter([
           {
             path: "products",
             element: <ProductPage />,
+          },
+          {
+            path: "orders",
+            element: <ListOrders />,
+          },
+          {
+            path: "orders/:id",
+            element: <OrderDetail />,
           },
         ],
       },

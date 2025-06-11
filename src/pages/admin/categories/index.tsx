@@ -80,7 +80,11 @@ const CategoryPage = () => {
   };
 
   // 🗑️ Xoá danh mục
-  const handleDelete = async (id: string | number) => {
+  const handleDelete = async (id: string | number | undefined) => {
+    if (!id) {
+      message.error("Không tìm thấy ID danh mục");
+      return;
+    }
     try {
       await deleteCategory(id.toString());
       message.success("🗑️ Đã xoá danh mục");
@@ -109,7 +113,7 @@ const CategoryPage = () => {
       </Button>
 
       <Table
-        rowKey={(record) => record.id?.toString?.() || ""}
+        rowKey={(record) => record.id ? record.id.toString() : ""}
         dataSource={categories}
         loading={loading}
         columns={[
@@ -182,4 +186,4 @@ const CategoryPage = () => {
   );
 };
 
-export default CategoryPage; 
+export default CategoryPage;
