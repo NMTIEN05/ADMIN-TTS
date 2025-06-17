@@ -11,7 +11,7 @@ export default function OrderDetail() {
   useEffect(() => {
     if (id) {
       getOrderById(id)
-        .then((res) => setOrder(res.data.data))
+        .then((data) => setOrder(data))
         .catch(() => message.error("Không thể tải chi tiết đơn hàng"));
     }
   }, [id]);

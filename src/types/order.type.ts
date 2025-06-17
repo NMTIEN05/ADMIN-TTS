@@ -11,6 +11,15 @@ export interface OrderDetailItem {
   subtotal: number;
 }
 
+export interface OrderDetail {
+  _id: string;
+  order_id: string;
+  book_id: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
 export interface OrderCoupon {
   coupon_id: {
     _id: string;
@@ -37,6 +46,22 @@ export interface Order {
 export interface OrderFullDetail extends Order {
   details: OrderDetailItem[];
   coupons: OrderCoupon[];
+}
+
+export interface OrderInput {
+  user_id: string;
+  cart_id: string;
+  total_amount: number;
+  shipping_address: string;
+  payment_method: string;
+  shipping_fee?: number;
+  tax?: number;
+  details: {
+    book_id: string;
+    quantity: number;
+    price: number;
+  }[];
+  coupons?: string[];
 }
 
 export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {

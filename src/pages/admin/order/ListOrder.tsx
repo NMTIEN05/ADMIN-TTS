@@ -22,9 +22,9 @@ export default function ListOrders() {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const res = await getOrders({});
+      const data = await getOrders({});
       // Đảm bảo luôn là mảng
-      setOrders(Array.isArray(res.data.data) ? res.data.data : []);
+      setOrders(Array.isArray(data) ? data : []);
     } catch (err) {
       message.error("Lỗi khi tải danh sách đơn hàng");
       setOrders([]); // fallback về mảng rỗng nếu lỗi
@@ -91,7 +91,7 @@ export default function ListOrders() {
       title: "Hành động",
       render: (_: any, record: Order) => (
         <Space>
-          <Button onClick={() => navigate(`/admin/orders/${record._id}`)} size="small">
+          <Button onClick={() => navigate(`/dashboard/orders/${record._id}`)} size="small">
             Chi tiết
           </Button>
           {(record.status !== "cancelled" && record.status !== "delivered") && (

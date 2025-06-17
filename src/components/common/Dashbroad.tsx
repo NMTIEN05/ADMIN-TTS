@@ -3,12 +3,14 @@ import { Layout, Menu } from 'antd';
 import { Outlet, useNavigate } from 'react-router-dom';
 import {
   UserOutlined,
-  VideoCameraOutlined,
   UploadOutlined,
   AppstoreOutlined,
   DatabaseOutlined,
   ShoppingCartOutlined,
   ShoppingOutlined,
+  HeartOutlined,
+  CommentOutlined,
+  CreditCardOutlined,
 } from '@ant-design/icons';
 import React, { useState } from 'react';
 
@@ -28,13 +30,17 @@ const Dashbroad: React.FC = () => {
           defaultSelectedKeys={['/dashboard/users']}
           onClick={({ key }) => navigate(key)}
           items={[
-            { key: '/dashboard/users/list', icon: <UserOutlined />, label: 'Người dùng' },
-            { key: '/dashboard/videos', icon: <VideoCameraOutlined />, label: 'Video' },
-            { key: '/dashboard/uploads', icon: <UploadOutlined />, label: 'Upload' },
+            { key: '/dashboard/users', icon: <UserOutlined />, label: 'Quản lý người dùng' },
+            { key: '/dashboard/uploads', icon: <UploadOutlined />, label: 'Upload ảnh' },
             { key: '/dashboard/categories', icon: <AppstoreOutlined />, label: 'Danh mục' },
             { key: '/dashboard/products', icon: <DatabaseOutlined />, label: 'Sản phẩm' },
-            { key: '/dashboard/orders', icon: <ShoppingOutlined />, label: 'Đơn hàng' }, // Thêm menu Đơn hàng
-            { key: '/dashboard/carts', icon: <ShoppingCartOutlined />, label: 'Giỏ hàng' }, // Thêm menu Giỏ hàng
+            { key: '/dashboard/authors', icon: <UserOutlined />, label: 'Tác giả' },
+            { key: '/dashboard/coupons', icon: <ShoppingCartOutlined />, label: 'Mã giảm giá' },
+            { key: '/dashboard/orders', icon: <ShoppingOutlined />, label: 'Đơn hàng' },
+            { key: '/dashboard/reviews', icon: <CommentOutlined />, label: 'Đánh giá' },
+            { key: '/dashboard/carts', icon: <ShoppingCartOutlined />, label: 'Giỏ hàng' },
+            { key: '/dashboard/wishlists', icon: <HeartOutlined />, label: 'Yêu thích' },
+            { key: '/dashboard/payments', icon: <CreditCardOutlined />, label: 'Thanh toán' },
           ]}
         />
       </Sider>

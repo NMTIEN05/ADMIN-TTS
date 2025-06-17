@@ -1,11 +1,34 @@
 import axios from "axios";
-import type { Order, OrderFullDetail } from "../types/order.type";
+import type { Order, OrderFullDetail, OrderInput } from "../types/order.type";
 
 const API_URL = "http://localhost:8888/api/orders";
 
-export const getOrders = (params: any) => axios.get(`${API_URL}`, { params });
-export const getOrderById = (id: string) => axios.get<{ data: OrderFullDetail }>(`${API_URL}/${id}`);
-export const deleteOrder = (id: string) => axios.delete(`${API_URL}/${id}`);
-export const updateOrderStatus = (id: string, status: string) =>
-  axios.patch(`${API_URL}/status/${id}`, { status });
-export const cancelOrder = (id: string) => axios.patch(`${API_URL}/cancel/${id}`);
+export const getOrders = async (params: any = {}) => {
+  const res = await axios.get(`${API_URL}`, { params });
+  return res.data.data || [];
+};
+
+export const getOrderById = async (id: string) => {
+  const res = await axios.get<{ data: OrderFullDetail }>(`${API_URL}/${id}`);
+  return res.data.data;
+};
+
+export const createOrder = async (data: OrderInput) => {
+  const res = await axios.post(`${API_URL}/add`, data);
+  return res.data.data;
+};
+
+export const deleteOrder = async (id: string) => {
+  const res = await axios.delete(`${API_URL}/${id}`);
+  return res.data;
+};
+
+export const updateOrderStatus = async (id: string, status: string) => {
+  const res = await axios.patch(`${API_URL}/status/${id}`, { status });
+  return res.data.data;
+};
+
+export const cancelOrder = async (id: string) => {
+  const res = await axios.patch(`${API_URL}/cancel/${id}`);
+  return res.data.data;
+};

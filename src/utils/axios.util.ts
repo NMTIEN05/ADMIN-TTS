@@ -3,15 +3,28 @@ import axios, {
   type AxiosRequestConfig,
   type AxiosResponse,
 } from "axios";
-// import { NEXT_PUBLIC_API_URL, NEXT_PUBLIC_AUTH_API_URL } from "./env";
-// import { clearUserInfoAndToken, getCommonStateFromLocalStorage } from "./utils";
 
 interface CustomAxiosRequestConfig extends AxiosRequestConfig {
   isAuthApi?: boolean;
 }
 
+// Hàm lấy token từ localStorage
+const getToken = () => {
+  try {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      const parsed = JSON.parse(userInfo);
+      return parsed.token;
+    }
+    return null;
+  } catch (error) {
+    console.error('Lỗi khi lấy token:', error);
+    return null;
+  }
+};
+
 const axiosInstance = axios.create({
-  baseURL: process.env.PUBLIC_API_URL,
+  baseURL: "http://localhost:8888",
   timeout: 20000,
   headers: {
     "Content-Type": "application/json",
@@ -21,26 +34,30 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error) => {
-    // log error ra để kiểm tra rồi sử lý
-
+    // Xử lý lỗi 401 Unauthorized
+    if (error.response?.status === 401) {
+      // Có thể chuyển hướng đến trang đăng nhập
+      console.error('Phiên đăng nhập hết hạn');
+      // window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    // const token = getCommonStateFromLocalStorage()?.token;
-    // if (token && config.headers) {
-    //   config.headers.set(
-    //     "Authorization",
-    //     (config as CustomAxiosRequestConfig).isAuthApi
-    //       ? `Bearer ${token}`
-    //       : token
-    //   );
-    // }
+    const token = getToken();
+    if (token && config.headers) {
+      config.headers.set(
+        "Authorization",
+        `Bearer ${token}`
+      );
+    }
     return config;
   },
   (error: AxiosError) => {
     return Promise.reject(error);
   }
 );
+
+export { axiosInstance };
