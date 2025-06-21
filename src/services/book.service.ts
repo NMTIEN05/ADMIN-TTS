@@ -1,24 +1,32 @@
-import axios from "axios";
-import type { BookInput } from "@/types/book.type";
+import { apiInstance } from '../utils/axios.util';
+import { API_ENDPOINTS } from '../constants';
+import type { Book, BookInput, BookWithDetails } from '../types/book.type';
 
-const API = "http://localhost:8888/api/books";
+export const bookService = {
+  getAll: async (): Promise<BookWithDetails[]> => {
+    const response = await apiInstance.get(API_ENDPOINTS.BOOKS);
+    console.log('Books API Response:', response.data);
+    return response.data?.data || [];
+  },
 
-export const getBooks = async () => {
-  const res = await axios.get(API);
-  return res.data.data.data;
-};
+  getById: async (id: string): Promise<BookWithDetails> => {
+    const response = await apiInstance.get(`${API_ENDPOINTS.BOOKS}/${id}`);
+    return response.data;
+  },
 
-export const addBook = async (data: BookInput) => {
-  const res = await axios.post(`${API}/add`, data);
-  return res.data.data;
-};
+  create: async (data: BookInput): Promise<Book> => {
+    const response = await apiInstance.post(API_ENDPOINTS.BOOKS_ADD, data);
+    return response.data;
+  },
 
-export const updateBook = async (id: string, data: BookInput) => {
-  const res = await axios.put(`${API}/edit/${id}`, data);
-  return res.data.data;
-};
+  update: async (id: string, data: BookInput): Promise<Book> => {
+    console.log('Updating book - ID:', id, 'Data:', data);
+    console.log('Update URL:', API_ENDPOINTS.BOOKS_EDIT(id));
+    const response = await apiInstance.put(API_ENDPOINTS.BOOKS_EDIT(id), data);
+    return response.data;
+  },
 
-export const deleteBook = async (id: string) => {
-  const res = await axios.delete(`${API}/${id}`);
-  return res.data.data;
+  delete: async (id: string): Promise<void> => {
+    await apiInstance.delete(API_ENDPOINTS.BOOKS_DELETE(id));
+  }
 };

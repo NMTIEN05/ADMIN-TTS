@@ -1,0 +1,55 @@
+export const API_BASE_URL = 'http://localhost:8888/api';
+export const AUTH_BASE_URL = 'http://localhost:8888/auth';
+
+export const API_ENDPOINTS = {
+  // Auth
+  LOGIN: '/login',
+  REGISTER: '/register',
+  USERS: '/users',
+  
+  // Categories
+  CATEGORIES: '/categories',
+  CATEGORIES_ADD: '/categories/add',
+  CATEGORIES_EDIT: (id: string) => `/categories/edit/${id}`,
+  CATEGORIES_DELETE: (id: string) => `/categories/${id}`,
+  
+  // Authors
+  AUTHORS: '/authors',
+  AUTHORS_ADD: '/authors/add',
+  AUTHORS_EDIT: (id: string) => `/authors/edit/${id}`,
+  AUTHORS_DELETE: (id: string) => `/authors/${id}`,
+  
+  // Books/Products
+  BOOKS: '/books',
+  BOOKS_ADD: '/books/add',
+  BOOKS_EDIT: (id: string) => `/books/edit/${id}`,
+  BOOKS_DELETE: (id: string) => `/books/${id}`,
+  
+  // Coupons
+  COUPONS: '/coupons',
+  COUPONS_ADD: '/coupons/add',
+  COUPONS_EDIT: (id: string) => `/coupons/edit/${id}`,
+  COUPONS_DELETE: (id: string) => `/coupons/${id}`,
+  COUPONS_TOGGLE: (id: string) => `/coupons/toggle/${id}`,
+  
+  // Orders
+  ORDERS: '/orders',
+  ORDERS_ADD: '/orders/add',
+  ORDERS_EDIT: (id: string) => `/orders/edit/${id}`,
+  ORDERS_DELETE: (id: string) => `/orders/${id}`,
+  ORDERS_STATUS: (id: string) => `/orders/status/${id}`,
+  ORDERS_CANCEL: (id: string) => `/orders/cancel/${id}`,
+};
+
+export const ORDER_STATUS = {
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  SHIPPED: 'shipped',
+  DELIVERED: 'delivered',
+  CANCELLED: 'cancelled'
+} as const;
+
+export const COUPON_STATUS = {
+  ACTIVE: 'active',
+  INACTIVE: 'inactive'
+} as const;

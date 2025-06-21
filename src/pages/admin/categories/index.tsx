@@ -1,180 +1,229 @@
-import { useEffect, useState } from "react";
-import {
-  getCategories,
-  addCategory,
-  updateCategory,
-  deleteCategory,
-} from "@/services/category.service";
-import type { Category, CategoryInput } from "@/types/category.type";
+import React, { useState } from "react";
 import {
   Table,
   Button,
   Modal,
   Form,
+  Input,
   Space,
   Popconfirm,
   message,
-  Input,
 } from "antd";
-import {
-  EditOutlined,
-  DeleteOutlined,
-  PlusOutlined,
-} from "@ant-design/icons";
+import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { categoryService } from "../../../services/category.service";
+import type { Category, CategoryInput } from "../../../types/category.type";
 
-const CategoryPage = () => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<Category | null>(null);
+const CategoryPage: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [form] = Form.useForm();
+  const queryClient = useQueryClient();
 
-  // 🟢 Fetch danh mục từ backend
-  const fetchCategories = async () => {
-    setLoading(true);
-    try {
-      const data = await getCategories();
-      console.log("📦 Danh sách danh mục:", data);
-      setCategories(data);
-    } catch (err) {
-      console.error("❌ Lỗi khi tải danh mục:", err);
-      message.error("Không thể tải danh mục");
-    } finally {
-      setLoading(false);
+  const { data: categories, isLoading, error } = useQuery({
+    queryKey: ["categories"],
+    queryFn: categoryService.getAll
+  });
+
+  React.useEffect(() => {
+    if (error) {
+      console.error("Error fetching categories:", error);
+      message.error("Không thể tải danh sách danh mục!");
     }
-  };
+  }, [error]);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  // Debug log
+  console.log('Raw categories response:', categories);
+  
+  // Xử lý response có thể có cấu trúc khác
+  let categoryList = [];
+  if (Array.isArray(categories)) {
+    categoryList = categories;
+  } else if (categories && categories.data && Array.isArray(categories.data)) {
+    categoryList = categories.data;
+  } else if (categories && categories.categories && Array.isArray(categories.categories)) {
+    categoryList = categories.categories;
+  }
+  
+  console.log('Final categoryList:', categoryList, 'Length:', categoryList.length);
 
-  // 🟢 Thêm hoặc sửa danh mục
-  const handleSubmit = async () => {
-    try {
-      const values: CategoryInput = await form.validateFields();
-      console.log("📤 Gửi đến backend:", values);
-
-      if (editing) {
-        await updateCategory(editing.id.toString(), values);
-        message.success("✅ Cập nhật thành công");
-      } else {
-        await addCategory(values);
-        message.success("✅ Thêm danh mục thành công");
-      }
-
-      setModalOpen(false);
+  const createMutation = useMutation({
+    mutationFn: categoryService.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      setIsModalOpen(false);
       form.resetFields();
-      fetchCategories();
-    } catch (err: any) {
-      console.error("❌ Lỗi gửi:", err);
-      // Hiển thị lỗi backend trả về nếu có
-      const msg = err?.response?.data?.message;
-      if (Array.isArray(msg)) {
-        message.error(msg.join("\n"));
-      } else if (msg) {
-        message.error(msg);
-      } else {
-        message.error("Lỗi xử lý biểu mẫu");
-      }
+      message.success("Tạo danh mục thành công!");
+    },
+    onError: () => {
+      message.error("Tạo danh mục thất bại!");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: CategoryInput }) =>
+      categoryService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      setIsModalOpen(false);
+      setEditingCategory(null);
+      form.resetFields();
+      message.success("Cập nhật danh mục thành công!");
+    },
+    onError: () => {
+      message.error("Cập nhật danh mục thất bại!");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: categoryService.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      message.success("Xóa danh mục thành công!");
+    },
+    onError: () => {
+      message.error("Xóa danh mục thất bại!");
+    },
+  });
+
+  const handleSubmit = (values: CategoryInput) => {
+    if (editingCategory) {
+      updateMutation.mutate({ id: editingCategory._id, data: values });
+    } else {
+      createMutation.mutate(values);
     }
   };
 
-  // 🗑️ Xoá danh mục
-  const handleDelete = async (id: string | number) => {
-    try {
-      await deleteCategory(id.toString());
-      message.success("🗑️ Đã xoá danh mục");
-      fetchCategories();
-    } catch (err) {
-      console.error("❌ Lỗi xoá danh mục:", err);
-      message.error("Không thể xoá danh mục");
-    }
+  const handleEdit = (category: Category) => {
+    setEditingCategory(category);
+    form.setFieldsValue(category);
+    setIsModalOpen(true);
   };
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id);
+  };
+
+  const columns = [
+    {
+      title: "Tên danh mục",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Mô tả",
+      dataIndex: "description",
+      key: "description",
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) => new Date(date).toLocaleDateString("vi-VN"),
+    },
+    {
+      title: "Thao tác",
+      key: "actions",
+      render: (_: any, record: Category) => (
+        <Space>
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+          >
+            Sửa
+          </Button>
+          <Popconfirm
+            title="Bạn có chắc chắn muốn xóa danh mục này?"
+            onConfirm={() => handleDelete(record._id)}
+            okText="Có"
+            cancelText="Không"
+          >
+            <Button type="primary" danger icon={<DeleteOutlined />}>
+              Xóa
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
 
   return (
     <div>
-      <h2>📁 Quản lý Danh mục</h2>
-
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={() => {
-          setEditing(null);
-          form.resetFields();
-          setModalOpen(true);
+      <div
+        style={{
+          marginBottom: 16,
+          display: "flex",
+          justifyContent: "space-between",
         }}
-        style={{ marginBottom: 16 }}
       >
-        ➕ Thêm danh mục
-      </Button>
+        <h1>Quản lý danh mục</h1>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => {
+            setEditingCategory(null);
+            form.resetFields();
+            setIsModalOpen(true);
+          }}
+        >
+          Thêm danh mục
+        </Button>
+      </div>
 
       <Table
-        rowKey={(record) => record.id?.toString?.() || ""}
-        dataSource={categories}
-        loading={loading}
-        columns={[
-          { title: "ID", dataIndex: "id", width: 80 },
-          { title: "Tên danh mục", dataIndex: "name" },
-          { title: "Mô tả", dataIndex: "description" },
-          {
-            title: "Hành động",
-            render: (_, record) => (
-              <Space>
-                <Button
-                  icon={<EditOutlined />}
-                  onClick={() => {
-                    setEditing(record);
-                    form.setFieldsValue({
-                      name: record.name,
-                      description: record.description,
-                    });
-                    setModalOpen(true);
-                  }}
-                />
-                <Popconfirm
-                  title="Xác nhận xoá?"
-                  onConfirm={() => handleDelete(record.id)}
-                >
-                  <Button danger icon={<DeleteOutlined />} />
-                </Popconfirm>
-              </Space>
-            ),
-          },
-        ]}
+        columns={columns}
+        dataSource={categoryList}
+        rowKey="_id"
+        loading={isLoading}
       />
 
       <Modal
-        title={editing ? "✏️ Sửa danh mục" : "➕ Thêm danh mục"}
-        open={modalOpen}
+        title={editingCategory ? "Sửa danh mục" : "Thêm danh mục"}
+        open={isModalOpen}
         onCancel={() => {
-          setModalOpen(false);
+          setIsModalOpen(false);
+          setEditingCategory(null);
           form.resetFields();
         }}
-        onOk={handleSubmit}
-        okText={editing ? "Cập nhật" : "Thêm"}
-        cancelText="Huỷ"
+        footer={null}
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Form.Item
-            label="Tên danh mục"
             name="name"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên danh mục" },
-              { min: 3, message: "Tên phải ít nhất 3 ký tự" },
-            ]}
+            label="Tên danh mục"
+            rules={[{ required: true, message: "Vui lòng nhập tên danh mục!" }]}
           >
-            <Input placeholder="VD: Sách, Truyện, Tạp chí..." />
+            <Input placeholder="Nhập tên danh mục" />
           </Form.Item>
 
           <Form.Item
-            label="Mô tả"
             name="description"
-            rules={[
-              { required: true, message: "Vui lòng nhập mô tả" },
-              { min: 10, message: "Mô tả phải ít nhất 10 ký tự" },
-            ]}
+            label="Mô tả"
+            rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
           >
-            <Input.TextArea rows={3} placeholder="VD: Danh mục cho sách học sinh..." />
+            <Input.TextArea rows={4} placeholder="Nhập mô tả danh mục" />
+          </Form.Item>
+
+          <Form.Item>
+            <Space>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={createMutation.isPending || updateMutation.isPending}
+              >
+                {editingCategory ? "Cập nhật" : "Thêm mới"}
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setEditingCategory(null);
+                  form.resetFields();
+                }}
+              >
+                Hủy
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>
@@ -182,4 +231,4 @@ const CategoryPage = () => {
   );
 };
 
-export default CategoryPage; 
+export default CategoryPage;

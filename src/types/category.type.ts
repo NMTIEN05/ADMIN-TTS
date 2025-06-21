@@ -1,7 +1,12 @@
 export interface Category {
-  id: string | number;
+  _id: string;
+  name: string;
+  description: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CategoryInput {
   name: string;
   description: string;
 }
-
-export type CategoryInput = Omit<Category, "id">;
