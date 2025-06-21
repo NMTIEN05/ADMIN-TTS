@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useCountStore } from './stores/common.store';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './routes';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import './App.css'
 import axios from 'axios';
 
@@ -21,9 +22,9 @@ function App() {
   }, []);
 
   return (
-    <>
+    <ErrorBoundary>
       <RouterProvider router={router} />
-    </>
+    </ErrorBoundary>
   )
 }
 

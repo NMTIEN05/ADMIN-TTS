@@ -1,104 +1,313 @@
-import React from "react";
-import { Table, Tag, Space, Button } from "antd";
+import React, { useState } from 'react';
+import { Table, Button, Modal, Form, Input, Space, Popconfirm, message, Tag, Select } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { userService } from '../services/user.service';
+import { authService } from '../services/auth/auth.service';
+import type { User, UserInput } from '../types/user.type';
 
-const UserList = () => {
+const UserList: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [form] = Form.useForm();
+  const queryClient = useQueryClient();
+
+  const { data: users, isLoading, error } = useQuery({
+    queryKey: ['users'],
+    queryFn: authService.getAllUsers
+  });
+
+  // Xử lý lỗi
+  React.useEffect(() => {
+    if (error) {
+      console.error('Error fetching users:', error);
+      message.error('Không thể tải danh sách người dùng!');
+    }
+  }, [error]);
+
+  // Debug log
+  console.log('Raw users response:', users);
+  
+  // Xử lý response có thể có cấu trúc khác
+  let userList = [];
+  if (Array.isArray(users)) {
+    userList = users;
+  } else if (users && users.data && Array.isArray(users.data)) {
+    userList = users.data;
+  } else if (users && users.users && Array.isArray(users.users)) {
+    userList = users.users;
+  }
+  
+  console.log('Final userList:', userList, 'Length:', userList.length);
+
+  const createMutation = useMutation({
+    mutationFn: authService.register,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setIsModalOpen(false);
+      form.resetFields();
+      message.success('Tạo người dùng thành công!');
+    },
+    onError: () => {
+      message.error('Tạo người dùng thất bại!');
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<UserInput> }) => 
+      userService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setIsModalOpen(false);
+      setEditingUser(null);
+      form.resetFields();
+      message.success('Cập nhật người dùng thành công!');
+    },
+    onError: () => {
+      message.error('Cập nhật người dùng thất bại!');
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: userService.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      message.success('Xóa người dùng thành công!');
+    },
+    onError: () => {
+      message.error('Xóa người dùng thất bại!');
+    }
+  });
+
+  const handleSubmit = (values: any) => {
+    if (editingUser) {
+      const { password, ...updateData } = values;
+      updateMutation.mutate({ id: editingUser._id, data: updateData });
+    } else {
+      createMutation.mutate(values);
+    }
+  };
+
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    form.setFieldsValue({
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      address: user.address,
+      role: user.role,
+      is_active: user.is_active
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id);
+  };
+
   const columns = [
     {
-      title: "STT",
-      dataIndex: "1",
-      key: "1",
+      title: 'STT',
+      key: 'stt',
+      width: 60,
+      render: (_: any, __: any, index: number) => index + 1,
     },
     {
-      title: "Username",
-      dataIndex: "username",
-      key: "username",
+      title: 'Họ tên',
+      dataIndex: 'name',
+      key: 'name',
     },
     {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
     },
     {
-      title: "Họ tên",
-      dataIndex: "full_name",
-      key: "full_name",
+      title: 'Số điện thoại',
+      dataIndex: 'phone',
+      key: 'phone',
+      render: (phone: string) => phone || 'N/A',
     },
     {
-      title: "Số điện thoại",
-      dataIndex: "phone",
-      key: "phone",
-    },
-    
-    {
-      title: "Vai trò",
-      dataIndex: "role",
-      key: "role",
+      title: 'Vai trò',
+      dataIndex: 'role',
+      key: 'role',
       render: (role: string) => (
-        <Tag color={role === "admin" ? "red" : "blue"}>{role.toUpperCase()}</Tag>
+        <Tag color={role === 'admin' ? 'red' : 'blue'}>
+          {role === 'admin' ? 'ADMIN' : 'USER'}
+        </Tag>
       ),
     },
     {
-      title: "Hành động",
-      key: "action",
-      render: () => (
+      title: 'Trạng thái',
+      dataIndex: 'is_active',
+      key: 'is_active',
+      render: (isActive: boolean) => (
+        <Tag color={isActive ? 'green' : 'red'}>
+          {isActive ? 'HOẠT ĐỘNG' : 'TẠM DỪNG'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Ngày tạo',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date: string) => new Date(date).toLocaleDateString('vi-VN'),
+    },
+    {
+      title: 'Thao tác',
+      key: 'actions',
+      render: (_: any, record: User) => (
         <Space>
-          <Button type="link">Sửa</Button>
-          <Button type="link" danger>Xoá</Button>
+          <Button 
+            type="primary" 
+            icon={<EditOutlined />} 
+            onClick={() => handleEdit(record)}
+          >
+            Sửa
+          </Button>
+          <Popconfirm
+            title="Bạn có chắc chắn muốn xóa người dùng này?"
+            onConfirm={() => handleDelete(record._id)}
+            okText="Có"
+            cancelText="Không"
+          >
+            <Button type="primary" danger icon={<DeleteOutlined />}>
+              Xóa
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },
   ];
 
-  const data = [
-    {
-      key: "1",
-      username: "nguyenvana",
-      email: "a@gmail.com",
-      full_name: "Nguyễn Văn A",
-      phone: "0909123456",
-      role: "admin",
-    },
-    {
-      key: "2",
-      username: "tranthib",
-      email: "b@gmail.com",
-      full_name: "Trần Thị B",
-      phone: "0912345678",
-      role: "client",
-    },
-  ];
-
   return (
-    <div
-  style={{
-    
-    padding: 24,
-    background: "#fff",
-    borderRadius: 8,
-    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-    minHeight: "100%",
-  }}
->
-  <h1
-  style={{
-    margin: 0,
-    fontSize: 24,
-    fontWeight: 600,
-    borderBottom: '2px solid #f0f0f0',
-    paddingBottom: 8,
-    color: '#1890ff',
-    marginBottom: 16
-  }}
->
-  Danh sách người dùng
-</h1>
+    <div>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
+        <h1>Quản lý người dùng ({userList.length} người dùng)</h1>
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          onClick={() => {
+            setEditingUser(null);
+            form.resetFields();
+            setIsModalOpen(true);
+          }}
+        >
+          Thêm người dùng
+        </Button>
+      </div>
 
-  <div style={{ marginBottom: 16 }}>
-    <Button style={{marginRight:1100}} type="primary">Thêm người dùng</Button>
-  </div>
-  <Table columns={columns} dataSource={data} />
-</div>
+      <Table 
+        columns={columns} 
+        dataSource={userList} 
+        rowKey="_id"
+        loading={isLoading}
+        scroll={{ x: 1000 }}
+      />
 
+      <Modal
+        title={editingUser ? 'Sửa người dùng' : 'Thêm người dùng'}
+        open={isModalOpen}
+        onCancel={() => {
+          setIsModalOpen(false);
+          setEditingUser(null);
+          form.resetFields();
+        }}
+        footer={null}
+        width={600}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+        >
+          <Form.Item
+            name="name"
+            label="Họ tên"
+            rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
+          >
+            <Input placeholder="Nhập họ tên" />
+          </Form.Item>
+
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Vui lòng nhập email!' },
+              { type: 'email', message: 'Email không hợp lệ!' }
+            ]}
+          >
+            <Input placeholder="Nhập email" disabled={!!editingUser} />
+          </Form.Item>
+
+          {!editingUser && (
+            <Form.Item
+              name="password"
+              label="Mật khẩu"
+              rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+            >
+              <Input.Password placeholder="Nhập mật khẩu" />
+            </Form.Item>
+          )}
+
+          <Form.Item
+            name="phone"
+            label="Số điện thoại"
+          >
+            <Input placeholder="Nhập số điện thoại" />
+          </Form.Item>
+
+          <Form.Item
+            name="address"
+            label="Địa chỉ"
+          >
+            <Input.TextArea rows={3} placeholder="Nhập địa chỉ" />
+          </Form.Item>
+
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Form.Item
+              name="role"
+              label="Vai trò"
+              rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
+              style={{ flex: 1 }}
+            >
+              <Select placeholder="Chọn vai trò">
+                <Select.Option value="user">User</Select.Option>
+                <Select.Option value="admin">Admin</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="is_active"
+              label="Trạng thái"
+              rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
+              style={{ flex: 1 }}
+            >
+              <Select placeholder="Chọn trạng thái">
+                <Select.Option value={true}>Hoạt động</Select.Option>
+                <Select.Option value={false}>Tạm dừng</Select.Option>
+              </Select>
+            </Form.Item>
+          </div>
+
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit" loading={createMutation.isPending || updateMutation.isPending}>
+                {editingUser ? 'Cập nhật' : 'Thêm mới'}
+              </Button>
+              <Button onClick={() => {
+                setIsModalOpen(false);
+                setEditingUser(null);
+                form.resetFields();
+              }}>
+                Hủy
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
   );
 };
 

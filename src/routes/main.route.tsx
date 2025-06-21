@@ -1,26 +1,59 @@
+// main.route.tsx
 import { createBrowserRouter } from "react-router-dom";
-import Dashbroad from "../components/common/Dashbroad";
+import Dashbroad from "../components/common/Layout";
 import Content from "../components/layouts/MainLayout";
 
-import UserForm from "../pages/userList";
 import UserList from "../pages/userList";
+import CategoryPage from "../pages/admin/categories";
+import ProductPage from "../pages/admin/products";
+import AuthorPage from "../pages/admin/authors";
+import CouponPage from "../pages/admin/coupons";
+import OrderPage from "../pages/admin/orders";
+import DashboardPage from "../pages/admin/dashboard";
 
 export const router = createBrowserRouter([
   {
-    path: "/dashboard",
-    element: <Dashbroad />,   // Layout chính có <Outlet />
+    path: "/",
+    element: <Dashbroad />,
     children: [
       {
-        path: "",             // Route con trống, để chứa children
-        element: <Content />, // Layout con có <Outlet />
+        path: "",
+        element: <Content />,
         children: [
           {
-            path: "users/list",    // /dashboard/users
-            element: <UserList />, // Trang users
+            path: "",
+            element: <DashboardPage />,
+          },
+          {
+            path: "dashboard",
+            element: <DashboardPage />,
+          },
+          {
+            path: "users/list",
+            element: <UserList />,
+          },
+          {
+            path: "categories",
+            element: <CategoryPage />,
+          },
+          {
+            path: "products",
+            element: <ProductPage />,
+          },
+          {
+            path: "authors",
+            element: <AuthorPage />,
+          },
+          {
+            path: "coupons",
+            element: <CouponPage />,
+          },
+          {
+            path: "orders",
+            element: <OrderPage />,
           },
         ],
       },
     ],
   },
 ]);
-

@@ -39,3 +39,15 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Xóa nền xám phần logo Sider */
+.ant-layout-sider .ant-layout-sider-children > div:first-child {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.ant-layout-sider {
+  background: #001529 !important; /* màu nền Sider */
+}
+.ant-layout-sider .ant-layout-sider-children > div {
+  background: transparent !important;
+}
