@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Input, Space, Popconfirm, message, Select, InputNumber, Switch, DatePicker, Image } from 'antd';
+import { Table, Button, Modal, Form, Input, Space, Popconfirm, message, Select, InputNumber, Switch, DatePicker, Image, Tabs } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { bookService } from '../../../services/book.service';
@@ -22,11 +22,17 @@ const ProductPage: React.FC = () => {
   const [selectedFormat, setSelectedFormat] = useState<string>('paperback');
   const [form] = Form.useForm();
   const [variantForm] = Form.useForm();
+  const [activeTab, setActiveTab] = useState('active');
   const queryClient = useQueryClient();
 
   const { data: books, isLoading } = useQuery({
     queryKey: ['books'],
     queryFn: bookService.getAll
+  });
+
+  const { data: deletedBooks, isLoading: isLoadingDeleted } = useQuery({
+    queryKey: ['deleted-books'],
+    queryFn: bookService.getDeleted
   });
 
   const { data: categories } = useQuery({
@@ -86,10 +92,23 @@ const ProductPage: React.FC = () => {
     mutationFn: bookService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
+      queryClient.invalidateQueries({ queryKey: ['deleted-books'] });
       message.success('Xóa sách thành công!');
     },
     onError: () => {
       message.error('Xóa sách thất bại!');
+    }
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: bookService.restore,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['books'] });
+      queryClient.invalidateQueries({ queryKey: ['deleted-books'] });
+      message.success('Khôi phục sách thành công!');
+    },
+    onError: () => {
+      message.error('Khôi phục sách thất bại!');
     }
   });
 
@@ -195,6 +214,10 @@ const ProductPage: React.FC = () => {
     setIsDetailModalOpen(true);
   };
 
+  const handleRestore = (id: string) => {
+    restoreMutation.mutate(id);
+  };
+
   const columns = [
     {
       title: 'Ảnh bìa',
@@ -275,12 +298,13 @@ const ProductPage: React.FC = () => {
           </Button>
           <Popconfirm
             title="Bạn có chắc chắn muốn xóa sách này?"
+            description="Sách sẽ bị xóa mềm và có thể khôi phục sau."
             onConfirm={() => deleteMutation.mutate(record._id)}
             okText="Có"
             cancelText="Không"
           >
             <Button type="primary" danger icon={<DeleteOutlined />}>
-              Xóa
+              Xóa mềm
             </Button>
           </Popconfirm>
         </Space>
@@ -305,12 +329,57 @@ const ProductPage: React.FC = () => {
         </Button>
       </div>
 
-      <Table 
-        columns={columns} 
-        dataSource={bookList} 
-        rowKey="_id"
-        loading={isLoading}
-        scroll={{ x: 1000 }}
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={[
+          {
+            key: 'active',
+            label: 'Sản phẩm hoạt động',
+            children: (
+              <Table 
+                columns={columns} 
+                dataSource={bookList} 
+                rowKey="_id"
+                loading={isLoading}
+                scroll={{ x: 1000 }}
+              />
+            )
+          },
+          {
+            key: 'deleted',
+            label: 'Sản phẩm đã xóa',
+            children: (
+              <Table
+                columns={[
+                  ...columns.slice(0, -1),
+                  {
+                    title: "Ngày xóa",
+                    dataIndex: "deleted_at",
+                    key: "deleted_at",
+                    render: (date: string) => date ? new Date(date).toLocaleDateString("vi-VN") : '-',
+                  },
+                  {
+                    title: "Thao tác",
+                    key: "actions",
+                    render: (_: any, record: BookWithDetails) => (
+                      <Button
+                        type="primary"
+                        onClick={() => restoreMutation.mutate(record._id)}
+                      >
+                        Khôi phục
+                      </Button>
+                    ),
+                  },
+                ]}
+                dataSource={deletedBooks?.data || []}
+                rowKey="_id"
+                loading={isLoadingDeleted}
+                scroll={{ x: 1000 }}
+              />
+            )
+          }
+        ]}
       />
 
       {/* Modal thêm/sửa sách */}

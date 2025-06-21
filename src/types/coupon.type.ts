@@ -6,6 +6,8 @@ export interface Coupon {
   start_date: string;
   end_date: string;
   is_active: boolean;
+  is_deleted?: boolean;
+  deleted_at?: string;
   createdAt?: string;
   updatedAt?: string;
 }

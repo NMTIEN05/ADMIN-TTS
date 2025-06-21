@@ -10,6 +10,8 @@ export interface Book {
   stock_quantity: number;
   cover_image?: string;
   is_available: boolean;
+  is_deleted?: boolean;
+  deleted_at?: string;
   format: 'hardcover' | 'paperback' | 'pdf';
   // Thông tin riêng cho format vật lý
   pages?: number;

@@ -13,6 +13,7 @@ import {
   Switch,
   DatePicker,
   Tag,
+  Tabs,
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -26,9 +27,16 @@ const CouponPage: React.FC = () => {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
 
+  const [activeTab, setActiveTab] = useState('active');
+
   const { data: coupons, isLoading } = useQuery({
     queryKey: ["coupons"],
     queryFn: couponService.getAll,
+  });
+
+  const { data: deletedCoupons, isLoading: isLoadingDeleted } = useQuery({
+    queryKey: ["deleted-coupons"],
+    queryFn: couponService.getDeleted,
   });
 
   // Debug log
@@ -77,10 +85,23 @@ const CouponPage: React.FC = () => {
     mutationFn: couponService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coupons"] });
+      queryClient.invalidateQueries({ queryKey: ["deleted-coupons"] });
       message.success("Xóa mã giảm giá thành công!");
     },
     onError: () => {
       message.error("Xóa mã giảm giá thất bại!");
+    },
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: couponService.restore,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coupons"] });
+      queryClient.invalidateQueries({ queryKey: ["deleted-coupons"] });
+      message.success("Khôi phục mã giảm giá thành công!");
+    },
+    onError: () => {
+      message.error("Khôi phục mã giảm giá thất bại!");
     },
   });
 
@@ -122,6 +143,10 @@ const CouponPage: React.FC = () => {
 
   const handleDelete = (id: string) => {
     deleteMutation.mutate(id);
+  };
+
+  const handleRestore = (id: string) => {
+    restoreMutation.mutate(id);
   };
 
   const handleToggleStatus = (id: string) => {
@@ -181,12 +206,13 @@ const CouponPage: React.FC = () => {
           </Button>
           <Popconfirm
             title="Bạn có chắc chắn muốn xóa mã giảm giá này?"
+            description="Mã giảm giá sẽ bị xóa mềm và có thể khôi phục sau."
             onConfirm={() => handleDelete(record._id)}
             okText="Có"
             cancelText="Không"
           >
             <Button type="primary" danger icon={<DeleteOutlined />}>
-              Xóa
+              Xóa mềm
             </Button>
           </Popconfirm>
         </Space>
@@ -217,12 +243,57 @@ const CouponPage: React.FC = () => {
         </Button>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={couponList}
-        rowKey="_id"
-        loading={isLoading}
-        scroll={{ x: 1200 }}
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={[
+          {
+            key: 'active',
+            label: 'Mã giảm giá hoạt động',
+            children: (
+              <Table
+                columns={columns}
+                dataSource={couponList}
+                rowKey="_id"
+                loading={isLoading}
+                scroll={{ x: 1200 }}
+              />
+            )
+          },
+          {
+            key: 'deleted',
+            label: 'Mã giảm giá đã xóa',
+            children: (
+              <Table
+                columns={[
+                  ...columns.slice(0, -1),
+                  {
+                    title: "Ngày xóa",
+                    dataIndex: "deleted_at",
+                    key: "deleted_at",
+                    render: (date: string) => date ? new Date(date).toLocaleDateString("vi-VN") : '-',
+                  },
+                  {
+                    title: "Thao tác",
+                    key: "actions",
+                    render: (_: any, record: Coupon) => (
+                      <Button
+                        type="primary"
+                        onClick={() => handleRestore(record._id)}
+                      >
+                        Khôi phục
+                      </Button>
+                    ),
+                  },
+                ]}
+                dataSource={deletedCoupons || []}
+                rowKey="_id"
+                loading={isLoadingDeleted}
+                scroll={{ x: 1200 }}
+              />
+            )
+          }
+        ]}
       />
 
       <Modal
