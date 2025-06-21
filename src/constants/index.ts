@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://localhost:8888/api';
+export const API_BASE_URL = 'http://localhost:8888';
 export const AUTH_BASE_URL = 'http://localhost:8888/auth';
 
 export const API_ENDPOINTS = {
@@ -8,37 +8,37 @@ export const API_ENDPOINTS = {
   USERS: '/users',
   
   // Categories
-  CATEGORIES: '/categories',
-  CATEGORIES_ADD: '/categories/add',
-  CATEGORIES_EDIT: (id: string) => `/categories/edit/${id}`,
-  CATEGORIES_DELETE: (id: string) => `/categories/${id}`,
+  CATEGORIES: '/api/categories',
+  CATEGORIES_ADD: '/api/categories/add',
+  CATEGORIES_EDIT: (id: string) => `/api/categories/edit/${id}`,
+  CATEGORIES_DELETE: (id: string) => `/api/categories/${id}`,
   
   // Authors
-  AUTHORS: '/authors',
-  AUTHORS_ADD: '/authors/add',
-  AUTHORS_EDIT: (id: string) => `/authors/edit/${id}`,
-  AUTHORS_DELETE: (id: string) => `/authors/${id}`,
+  AUTHORS: '/api/authors',
+  AUTHORS_ADD: '/api/authors/add',
+  AUTHORS_EDIT: (id: string) => `/api/authors/edit/${id}`,
+  AUTHORS_DELETE: (id: string) => `/api/authors/${id}`,
   
   // Books/Products
-  BOOKS: '/books',
-  BOOKS_ADD: '/books/add',
-  BOOKS_EDIT: (id: string) => `/books/edit/${id}`,
-  BOOKS_DELETE: (id: string) => `/books/${id}`,
+  BOOKS: '/api/books',
+  BOOKS_ADD: '/api/books/add',
+  BOOKS_EDIT: (id: string) => `/api/books/edit/${id}`,
+  BOOKS_DELETE: (id: string) => `/api/books/${id}`,
   
   // Coupons
-  COUPONS: '/coupons',
-  COUPONS_ADD: '/coupons/add',
-  COUPONS_EDIT: (id: string) => `/coupons/edit/${id}`,
-  COUPONS_DELETE: (id: string) => `/coupons/${id}`,
-  COUPONS_TOGGLE: (id: string) => `/coupons/toggle/${id}`,
+  COUPONS: '/api/coupons',
+  COUPONS_ADD: '/api/coupons/add',
+  COUPONS_EDIT: (id: string) => `/api/coupons/edit/${id}`,
+  COUPONS_DELETE: (id: string) => `/api/coupons/${id}`,
+  COUPONS_TOGGLE: (id: string) => `/api/coupons/toggle/${id}`,
   
   // Orders
-  ORDERS: '/orders',
-  ORDERS_ADD: '/orders/add',
-  ORDERS_EDIT: (id: string) => `/orders/edit/${id}`,
-  ORDERS_DELETE: (id: string) => `/orders/${id}`,
-  ORDERS_STATUS: (id: string) => `/orders/status/${id}`,
-  ORDERS_CANCEL: (id: string) => `/orders/cancel/${id}`,
+  ORDERS: '/api/orders',
+  ORDERS_ADD: '/api/orders/add',
+  ORDERS_EDIT: (id: string) => `/api/orders/edit/${id}`,
+  ORDERS_DELETE: (id: string) => `/api/orders/${id}`,
+  ORDERS_STATUS: (id: string) => `/api/orders/status/${id}`,
+  ORDERS_CANCEL: (id: string) => `/api/orders/cancel/${id}`,
 };
 
 export const ORDER_STATUS = {

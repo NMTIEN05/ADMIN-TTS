@@ -14,7 +14,7 @@ const UserList: React.FC = () => {
 
   const { data: users, isLoading, error } = useQuery({
     queryKey: ['users'],
-    queryFn: authService.getAllUsers
+    queryFn: userService.getAll
   });
 
   // Xử lý lỗi
@@ -91,12 +91,10 @@ const UserList: React.FC = () => {
   const handleEdit = (user: User) => {
     setEditingUser(user);
     form.setFieldsValue({
-      name: user.name,
+      fullname: user.fullname,
       email: user.email,
       phone: user.phone,
-      address: user.address,
-      role: user.role,
-      is_active: user.is_active
+      isAdmin: user.isAdmin
     });
     setIsModalOpen(true);
   };
@@ -114,8 +112,8 @@ const UserList: React.FC = () => {
     },
     {
       title: 'Họ tên',
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'fullname',
+      key: 'fullname',
     },
     {
       title: 'Email',
@@ -130,21 +128,11 @@ const UserList: React.FC = () => {
     },
     {
       title: 'Vai trò',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role: string) => (
-        <Tag color={role === 'admin' ? 'red' : 'blue'}>
-          {role === 'admin' ? 'ADMIN' : 'USER'}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'is_active',
-      key: 'is_active',
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'green' : 'red'}>
-          {isActive ? 'HOẠT ĐỘNG' : 'TẠM DỪNG'}
+      dataIndex: 'isAdmin',
+      key: 'isAdmin',
+      render: (isAdmin: boolean) => (
+        <Tag color={isAdmin ? 'red' : 'blue'}>
+          {isAdmin ? 'ADMIN' : 'USER'}
         </Tag>
       ),
     },
@@ -223,7 +211,7 @@ const UserList: React.FC = () => {
           onFinish={handleSubmit}
         >
           <Form.Item
-            name="name"
+            name="fullname"
             label="Họ tên"
             rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
           >
@@ -259,37 +247,15 @@ const UserList: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            name="address"
-            label="Địa chỉ"
+            name="isAdmin"
+            label="Vai trò"
+            rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
           >
-            <Input.TextArea rows={3} placeholder="Nhập địa chỉ" />
+            <Select placeholder="Chọn vai trò">
+              <Select.Option value={false}>User</Select.Option>
+              <Select.Option value={true}>Admin</Select.Option>
+            </Select>
           </Form.Item>
-
-          <div style={{ display: 'flex', gap: 16 }}>
-            <Form.Item
-              name="role"
-              label="Vai trò"
-              rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
-              style={{ flex: 1 }}
-            >
-              <Select placeholder="Chọn vai trò">
-                <Select.Option value="user">User</Select.Option>
-                <Select.Option value="admin">Admin</Select.Option>
-              </Select>
-            </Form.Item>
-
-            <Form.Item
-              name="is_active"
-              label="Trạng thái"
-              rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
-              style={{ flex: 1 }}
-            >
-              <Select placeholder="Chọn trạng thái">
-                <Select.Option value={true}>Hoạt động</Select.Option>
-                <Select.Option value={false}>Tạm dừng</Select.Option>
-              </Select>
-            </Form.Item>
-          </div>
 
           <Form.Item>
             <Space>

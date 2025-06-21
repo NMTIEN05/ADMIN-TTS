@@ -28,5 +28,15 @@ export const bookService = {
 
   delete: async (id: string): Promise<void> => {
     await apiInstance.delete(API_ENDPOINTS.BOOKS_DELETE(id));
+  },
+
+  getDeleted: async (): Promise<BookWithDetails[]> => {
+    const response = await apiInstance.get(`${API_ENDPOINTS.BOOKS}?includeDeleted=true`);
+    return response.data?.data || [];
+  },
+
+  restore: async (id: string): Promise<Book> => {
+    const response = await apiInstance.patch(`/books/restore/${id}`);
+    return response.data?.data;
   }
 };

@@ -1,23 +1,19 @@
 export interface User {
   _id: string;
-  name: string;
+  fullname: string;
   email: string;
   phone?: string;
-  address?: string;
-  role: 'user' | 'admin';
-  is_active: boolean;
+  isAdmin: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface UserInput {
-  name: string;
+  fullname: string;
   email: string;
   password: string;
   phone?: string;
-  address?: string;
-  role?: 'user' | 'admin';
-  is_active?: boolean;
+  isAdmin?: boolean;
 }
 
 export interface LoginInput {
