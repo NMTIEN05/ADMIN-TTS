@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Table, Button, Modal, Space, Popconfirm, message, Tag, Select, Descriptions } from 'antd';
-import { EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EyeOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService } from '../../../services/order.service';
 import type { OrderWithDetails } from '../../../types/order.type';
-import { ORDER_STATUS } from '../../../constants';
 
 const OrderPage: React.FC = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -53,16 +52,7 @@ const OrderPage: React.FC = () => {
     }
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: orderService.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      message.success('Xóa đơn hàng thành công!');
-    },
-    onError: () => {
-      message.error('Xóa đơn hàng thất bại!');
-    }
-  });
+
 
   const handleStatusChange = (orderId: string, status: string) => {
     updateStatusMutation.mutate({ id: orderId, status });
@@ -72,9 +62,7 @@ const OrderPage: React.FC = () => {
     cancelMutation.mutate(orderId);
   };
 
-  const handleDeleteOrder = (orderId: string) => {
-    deleteMutation.mutate(orderId);
-  };
+
 
   const handleViewDetail = (order: OrderWithDetails) => {
     setSelectedOrder(order);
@@ -132,8 +120,10 @@ const OrderPage: React.FC = () => {
     {
       title: 'Khách hàng',
       key: 'customer',
-      render: (_: any, record: OrderWithDetails) => 
-        record.user?.name || 'N/A',
+      render: (_: any, record: OrderWithDetails) => {
+        const addressParts = record.shipping_address?.split(' - ') || [];
+        return addressParts[0] || record.user?.fullname || record.user_id?.fullname || 'N/A';
+      },
     },
     {
       title: 'Ngày đặt',
@@ -158,21 +148,11 @@ const OrderPage: React.FC = () => {
           onChange={(value) => handleStatusChange(record._id, value)}
           disabled={status === 'cancelled' || status === 'delivered'}
         >
-          <Select.Option value="pending">Chờ xử lý</Select.Option>
-          <Select.Option value="confirmed">Đã xác nhận</Select.Option>
-          <Select.Option value="shipped">Đang giao</Select.Option>
-          <Select.Option value="delivered">Đã giao</Select.Option>
+          <Select.Option value="pending" disabled={['confirmed', 'shipped', 'delivered'].includes(status)}>Chờ xử lý</Select.Option>
+          <Select.Option value="confirmed" disabled={status === 'pending' ? false : ['shipped', 'delivered'].includes(status)}>Đã xác nhận</Select.Option>
+          <Select.Option value="shipped" disabled={!['confirmed'].includes(status)}>Đang giao</Select.Option>
+          <Select.Option value="delivered" disabled={!['shipped'].includes(status)}>Đã giao</Select.Option>
         </Select>
-      ),
-    },
-    {
-      title: 'Thanh toán',
-      dataIndex: 'payment_status',
-      key: 'payment_status',
-      render: (status: string) => (
-        <Tag color={getPaymentStatusColor(status)}>
-          {getPaymentStatusText(status)}
-        </Tag>
       ),
     },
     {
@@ -199,16 +179,7 @@ const OrderPage: React.FC = () => {
               </Button>
             </Popconfirm>
           )}
-          <Popconfirm
-            title="Bạn có chắc chắn muốn xóa đơn hàng này?"
-            onConfirm={() => handleDeleteOrder(record._id)}
-            okText="Có"
-            cancelText="Không"
-          >
-            <Button type="primary" danger icon={<DeleteOutlined />}>
-              Xóa
-            </Button>
-          </Popconfirm>
+
         </Space>
       ),
     },
@@ -248,13 +219,31 @@ const OrderPage: React.FC = () => {
                 {new Date(selectedOrder.order_date).toLocaleString('vi-VN')}
               </Descriptions.Item>
               <Descriptions.Item label="Khách hàng">
-                {selectedOrder.user?.name || 'N/A'}
+                {(() => {
+                  const parts = selectedOrder.shipping_address?.split(' - ') || [];
+                  return parts[0] || selectedOrder.user?.fullname || selectedOrder.user_id?.fullname || 'N/A';
+                })()}
               </Descriptions.Item>
-              <Descriptions.Item label="Email">
-                {selectedOrder.user?.email || 'N/A'}
+              <Descriptions.Item label="SĐT">
+                {(() => {
+                  const parts = selectedOrder.shipping_address?.split(' - ') || [];
+                  return parts[1] || 'N/A';
+                })()}
               </Descriptions.Item>
               <Descriptions.Item label="Địa chỉ giao hàng" span={2}>
-                {selectedOrder.shipping_address}
+                {(() => {
+                  const parts = selectedOrder.shipping_address?.split(' - ') || [];
+                  if (parts.length >= 3) {
+                    return (
+                      <div>
+                        <div><strong>Họ tên:</strong> {parts[0]}</div>
+                        <div><strong>SĐT:</strong> {parts[1]}</div>
+                        <div><strong>Địa chỉ:</strong> {parts.slice(2).join(' - ')}</div>
+                      </div>
+                    );
+                  }
+                  return selectedOrder.shipping_address;
+                })()}
               </Descriptions.Item>
               <Descriptions.Item label="Phương thức thanh toán">
                 {selectedOrder.payment_method}
