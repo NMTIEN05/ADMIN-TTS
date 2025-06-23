@@ -32,7 +32,9 @@ const ProductPage: React.FC = () => {
 
   const { data: deletedBooks, isLoading: isLoadingDeleted } = useQuery({
     queryKey: ['deleted-books'],
-    queryFn: bookService.getDeleted
+    queryFn: bookService.getDeleted,
+    enabled: activeTab === 'deleted',
+    refetchOnWindowFocus: false
   });
 
   const { data: categories } = useQuery({
@@ -46,9 +48,9 @@ const ProductPage: React.FC = () => {
   });
 
   // Xử lý response
-  const bookList = books?.data || [];
-  const categoryList = categories?.data || [];
-  const authorList = authors?.data || [];
+  const bookList = Array.isArray(books?.data?.data) ? books.data.data : Array.isArray(books?.data) ? books.data : [];
+  const categoryList = Array.isArray(categories?.data?.data) ? categories.data.data : Array.isArray(categories?.data) ? categories.data : [];
+  const authorList = Array.isArray(authors?.data?.data) ? authors.data.data : Array.isArray(authors?.data) ? authors.data : [];
 
   // Query cho variants
   const { data: variants, refetch: refetchVariants } = useQuery({
@@ -372,7 +374,7 @@ const ProductPage: React.FC = () => {
                     ),
                   },
                 ]}
-                dataSource={deletedBooks?.data || []}
+                dataSource={Array.isArray(deletedBooks?.data?.data) ? deletedBooks.data.data : Array.isArray(deletedBooks?.data) ? deletedBooks.data : []}
                 rowKey="_id"
                 loading={isLoadingDeleted}
                 scroll={{ x: 1000 }}
