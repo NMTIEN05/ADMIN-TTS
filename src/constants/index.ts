@@ -39,7 +39,23 @@ export const API_ENDPOINTS = {
   ORDERS_DELETE: (id: string) => `/orders/${id}`,
   ORDERS_STATUS: (id: string) => `/orders/status/${id}`,
   ORDERS_CANCEL: (id: string) => `/orders/cancel/${id}`,
+
+  // Flash sale
+  FLASHSALE: '/flashsales',
+  FLASHSALE_ADD: '/flashsales/add',
+  FLASHSALE_EDIT: (id: string) => `/flashsales/edit/${id}`,
+  FLASHSALE_DELETE: (id: string) => `/flashsales/${id}`,
+  FLASHSALE_TOGGLE: (id: string) => `/flashsales/toggle/${id}`,
+
+  // Flash sale
+  FLASHSALE_ITEM: '/flashsales',
+  FLASHSALE_ITEM_ADD: '/flashsales/add',
+  FLASHSALE_ITEM_EDIT: (id: string) => `/flashsales/edit/${id}`,
+  FLASHSALE_ITEM_DELETE: (id: string) => `/flashsales/${id}`,
+  FLASHSALE_ITEM_TOGGLE: (id: string) => `/flashsales/toggle/${id}`,
 };
+
+
 
 export const ORDER_STATUS = {
   PENDING: 'pending',

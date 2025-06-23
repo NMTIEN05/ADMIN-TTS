@@ -9,6 +9,7 @@ import {
   TagOutlined,
   ShoppingCartOutlined,
   DashboardOutlined,
+  BookOutlined,
 } from '@ant-design/icons';
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -50,6 +51,7 @@ const Dashbroad: React.FC = () => {
             { key: 'authors', icon: <EditOutlined />, label: 'Tác giả' },
             { key: 'coupons', icon: <TagOutlined />, label: 'Mã giảm giá' },
             { key: 'orders', icon: <ShoppingCartOutlined />, label: 'Đơn hàng' },
+            { key: 'flashsales', icon: <BookOutlined />, label: 'flash sales' },
           ]}
         />
       </Sider>
