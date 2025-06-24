@@ -75,7 +75,7 @@ const DashboardPage: React.FC = () => {
     {
       title: 'Khách hàng',
       key: 'customer',
-      render: (_: any, record: any) => record.user?.name || 'N/A',
+      render: (_: any, record: any) => record.user_id?.fullname || 'N/A',
     },
     {
       title: 'Tổng tiền',
