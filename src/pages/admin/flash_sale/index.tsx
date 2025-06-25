@@ -103,15 +103,17 @@ const FlashSalePage: React.FC = () => {
       title: "Trạng thái",
       key: "status",
       render: (_: any, record: any) => {
-        const now = new Date();
-        const start = new Date(record.startDate);
-        const end = new Date(record.endDate);
-        const active = now >= start && now <= end;
-        return (
-          <Tag color={active ? "green" : "red"}>
-            {active ? "Đang diễn ra" : "Kết thúc"}
-          </Tag>
-        );
+        const now = dayjs();
+        const start = dayjs(record.startDate);
+        const end = dayjs(record.endDate);
+        
+        if (now.isBefore(start)) {
+          return <Tag color="blue">Chưa bắt đầu</Tag>;
+        } else if (now.isAfter(end)) {
+          return <Tag color="red">Kết thúc</Tag>;
+        } else {
+          return <Tag color="green">Đang diễn ra</Tag>;
+        }
       }
     },
     {

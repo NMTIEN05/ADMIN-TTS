@@ -58,21 +58,21 @@ export const flashSaleItemService = {
   },
 
   getById: async (id: string): Promise<FlashSaleItem> => {
-    const res = await apiInstance.get(`${API_ENDPOINTS.FLASHSALE_ITEM}/${id}`)
+    const res = await apiInstance.get(`${API_ENDPOINTS.FLASHSALE}/${id}`)
     return res.data?.data
   },
 
   create: async (data: FlashSaleItemInput): Promise<FlashSaleItem> => {
-    const res = await apiInstance.post(API_ENDPOINTS.FLASHSALE_ITEM, data)
+    const res = await apiInstance.post(API_ENDPOINTS.FLASHSALE_ITEM_ADD, data)
     return res.data?.data
   },
 
   update: async (id: string, data: Partial<FlashSaleItemInput>): Promise<FlashSaleItem> => {
-    const res = await apiInstance.patch(`${API_ENDPOINTS.FLASHSALE_ITEM}/${id}`, data)
+    const res = await apiInstance.patch(API_ENDPOINTS.FLASHSALE_ITEM_EDIT(id), data)
     return res.data?.data
   },
 
   delete: async (id: string): Promise<void> => {
-    await apiInstance.delete(`${API_ENDPOINTS.FLASHSALE_ITEM}/${id}`)
+    await apiInstance.delete(API_ENDPOINTS.FLASHSALE_ITEM_DELETE(id))
   }
 }

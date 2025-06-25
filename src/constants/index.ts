@@ -47,12 +47,11 @@ export const API_ENDPOINTS = {
   FLASHSALE_DELETE: (id: string) => `/flashsales/${id}`,
   FLASHSALE_TOGGLE: (id: string) => `/flashsales/toggle/${id}`,
 
-  // Flash sale
-  FLASHSALE_ITEM: '/flashsales',
-  FLASHSALE_ITEM_ADD: '/flashsales/add',
-  FLASHSALE_ITEM_EDIT: (id: string) => `/flashsales/edit/${id}`,
-  FLASHSALE_ITEM_DELETE: (id: string) => `/flashsales/${id}`,
-  FLASHSALE_ITEM_TOGGLE: (id: string) => `/flashsales/toggle/${id}`,
+  // Flash sale items
+  FLASHSALE_ITEM: '/flashsales/items/all',
+  FLASHSALE_ITEM_ADD: '/flashsales/items',
+  FLASHSALE_ITEM_EDIT: (id: string) => `/flashsales/items/${id}`,
+  FLASHSALE_ITEM_DELETE: (id: string) => `/flashsales/items/${id}`,
 };
 
 
