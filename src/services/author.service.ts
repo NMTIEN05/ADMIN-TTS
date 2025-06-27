@@ -26,5 +26,19 @@ export const authorService = {
 
   delete: async (id: string): Promise<void> => {
     await apiInstance.delete(API_ENDPOINTS.AUTHORS_DELETE(id));
+  },
+
+  getDeleted: async (): Promise<Author[]> => {
+    const response = await apiInstance.get(`${API_ENDPOINTS.AUTHORS}?includeDeleted=true`);
+    return response.data?.data || [];
+  },
+
+  restore: async (id: string): Promise<Author> => {
+    const response = await apiInstance.patch(`${API_ENDPOINTS.AUTHORS}/${id}/restore`);
+    return response.data?.data;
+  },
+
+  forceDelete: async (id: string): Promise<void> => {
+    await apiInstance.delete(`${API_ENDPOINTS.AUTHORS}/${id}/force`);
   }
 };

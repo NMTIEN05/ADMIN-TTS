@@ -114,6 +114,17 @@ const ProductPage: React.FC = () => {
     }
   });
 
+  const forceDeleteMutation = useMutation({
+    mutationFn: bookService.forceDelete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deleted-books'] });
+      message.success('Xóa vĩnh viễn sách thành công!');
+    },
+    onError: () => {
+      message.error('Xóa vĩnh viễn sách thất bại!');
+    }
+  });
+
   const createVariantMutation = useMutation({
     mutationFn: (data: ProductVariantInput) => 
       selectedBook ? productVariantService.create(selectedBook._id, data) : Promise.reject('No book selected'),
@@ -365,12 +376,25 @@ const ProductPage: React.FC = () => {
                     title: "Thao tác",
                     key: "actions",
                     render: (_: any, record: BookWithDetails) => (
-                      <Button
-                        type="primary"
-                        onClick={() => restoreMutation.mutate(record._id)}
-                      >
-                        Khôi phục
-                      </Button>
+                      <Space>
+                        <Button
+                          type="primary"
+                          onClick={() => restoreMutation.mutate(record._id)}
+                        >
+                          Khôi phục
+                        </Button>
+                        <Popconfirm
+                          title="Bạn có chắc chắn muốn xóa vĩnh viễn sách này?"
+                          description="Sách sẽ bị xóa hoàn toàn và không thể khôi phục."
+                          onConfirm={() => forceDeleteMutation.mutate(record._id)}
+                          okText="Có"
+                          cancelText="Không"
+                        >
+                          <Button type="primary" danger>
+                            Xóa hẳn
+                          </Button>
+                        </Popconfirm>
+                      </Space>
                     ),
                   },
                 ]}

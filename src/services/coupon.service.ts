@@ -27,14 +27,18 @@ export const couponService = {
     await apiInstance.delete(API_ENDPOINTS.COUPONS_DELETE(id));
   },
 
-  restore: async (id: string): Promise<Coupon> => {
-    const response = await apiInstance.patch(`/coupons/restore/${id}`);
-    return response.data?.data;
-  },
-
   getDeleted: async (): Promise<Coupon[]> => {
     const response = await apiInstance.get(`${API_ENDPOINTS.COUPONS}?includeDeleted=true`);
     return response.data?.data || [];
+  },
+
+  restore: async (id: string): Promise<Coupon> => {
+    const response = await apiInstance.patch(`${API_ENDPOINTS.COUPONS}/${id}/restore`);
+    return response.data?.data;
+  },
+
+  forceDelete: async (id: string): Promise<void> => {
+    await apiInstance.delete(`${API_ENDPOINTS.COUPONS}/${id}/force`);
   },
 
   toggleStatus: async (id: string): Promise<Coupon> => {

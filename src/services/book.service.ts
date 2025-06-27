@@ -37,7 +37,11 @@ export const bookService = {
   },
 
   restore: async (id: string): Promise<Book> => {
-    const response = await apiInstance.patch(`/api/books/restore/${id}`);
+    const response = await apiInstance.patch(`${API_ENDPOINTS.BOOKS}/${id}/restore`);
     return response.data?.data;
+  },
+
+  forceDelete: async (id: string): Promise<void> => {
+    await apiInstance.delete(`${API_ENDPOINTS.BOOKS}/${id}/force`);
   }
 };

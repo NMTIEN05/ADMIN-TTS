@@ -6,30 +6,40 @@ export const API_ENDPOINTS = {
   LOGIN: '/login',
   REGISTER: '/register',
   USERS: '/users',
+  USERS_RESTORE: (id: string) => `/users/restore/${id}`,
+  USERS_DELETED: '/users/deleted',
   
   // Categories
   CATEGORIES: '/categories',
   CATEGORIES_ADD: '/categories/add',
   CATEGORIES_EDIT: (id: string) => `/categories/edit/${id}`,
   CATEGORIES_DELETE: (id: string) => `/categories/${id}`,
+  CATEGORIES_RESTORE: (id: string) => `/categories/restore/${id}`,
+  CATEGORIES_DELETED: '/categories/deleted',
   
   // Authors
   AUTHORS: '/authors',
   AUTHORS_ADD: '/authors/add',
   AUTHORS_EDIT: (id: string) => `/authors/edit/${id}`,
   AUTHORS_DELETE: (id: string) => `/authors/${id}`,
+  AUTHORS_RESTORE: (id: string) => `/authors/restore/${id}`,
+  AUTHORS_DELETED: '/authors/deleted',
   
   // Books/Products
   BOOKS: '/books',
   BOOKS_ADD: '/books/add',
   BOOKS_EDIT: (id: string) => `/books/edit/${id}`,
   BOOKS_DELETE: (id: string) => `/books/${id}`,
+  BOOKS_RESTORE: (id: string) => `/books/restore/${id}`,
+  BOOKS_DELETED: '/books/deleted',
   
   // Coupons
   COUPONS: '/coupons',
   COUPONS_ADD: '/coupons/add',
   COUPONS_EDIT: (id: string) => `/coupons/edit/${id}`,
   COUPONS_DELETE: (id: string) => `/coupons/${id}`,
+  COUPONS_RESTORE: (id: string) => `/coupons/restore/${id}`,
+  COUPONS_DELETED: '/coupons/deleted',
   COUPONS_TOGGLE: (id: string) => `/coupons/toggle/${id}`,
   
   // Orders

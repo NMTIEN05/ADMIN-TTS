@@ -105,6 +105,17 @@ const CouponPage: React.FC = () => {
     },
   });
 
+  const forceDeleteMutation = useMutation({
+    mutationFn: couponService.forceDelete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deleted-coupons"] });
+      message.success("Xóa vĩnh viễn mã giảm giá thành công!");
+    },
+    onError: () => {
+      message.error("Xóa vĩnh viễn mã giảm giá thất bại!");
+    },
+  });
+
   const toggleMutation = useMutation({
     mutationFn: couponService.toggleStatus,
     onSuccess: () => {
@@ -277,16 +288,29 @@ const CouponPage: React.FC = () => {
                     title: "Thao tác",
                     key: "actions",
                     render: (_: any, record: Coupon) => (
-                      <Button
-                        type="primary"
-                        onClick={() => handleRestore(record._id)}
-                      >
-                        Khôi phục
-                      </Button>
+                      <Space>
+                        <Button
+                          type="primary"
+                          onClick={() => handleRestore(record._id)}
+                        >
+                          Khôi phục
+                        </Button>
+                        <Popconfirm
+                          title="Bạn có chắc chắn muốn xóa vĩnh viễn mã giảm giá này?"
+                          description="Mã giảm giá sẽ bị xóa hoàn toàn và không thể khôi phục."
+                          onConfirm={() => forceDeleteMutation.mutate(record._id)}
+                          okText="Có"
+                          cancelText="Không"
+                        >
+                          <Button type="primary" danger>
+                            Xóa hẳn
+                          </Button>
+                        </Popconfirm>
+                      </Space>
                     ),
                   },
                 ]}
-                dataSource={deletedCoupons || []}
+                dataSource={Array.isArray(deletedCoupons?.data) ? deletedCoupons.data : Array.isArray(deletedCoupons) ? deletedCoupons : []}
                 rowKey="_id"
                 loading={isLoadingDeleted}
                 scroll={{ x: 1200 }}

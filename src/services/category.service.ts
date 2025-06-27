@@ -26,6 +26,20 @@ export const categoryService = {
 
   delete: async (id: string): Promise<void> => {
     await apiInstance.delete(API_ENDPOINTS.CATEGORIES_DELETE(id));
+  },
+
+  getDeleted: async (): Promise<Category[]> => {
+    const response = await apiInstance.get(`${API_ENDPOINTS.CATEGORIES}?includeDeleted=true`);
+    return response.data?.data || [];
+  },
+
+  restore: async (id: string): Promise<Category> => {
+    const response = await apiInstance.patch(`${API_ENDPOINTS.CATEGORIES}/${id}/restore`);
+    return response.data?.data;
+  },
+
+  forceDelete: async (id: string): Promise<void> => {
+    await apiInstance.delete(`${API_ENDPOINTS.CATEGORIES}/${id}/force`);
   }
 };
 
@@ -35,3 +49,5 @@ export const getCategoryById = categoryService.getById;
 export const addCategory = categoryService.create;
 export const updateCategory = categoryService.update;
 export const deleteCategory = categoryService.delete;
+export const getDeletedCategories = categoryService.getDeleted;
+export const restoreCategory = categoryService.restore;
