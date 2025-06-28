@@ -86,53 +86,77 @@ const Dashboard: React.FC = () => {
             border: 'none'
           }}
           items={[
-            { 
-              key: 'dashboard', 
-              icon: <DashboardOutlined style={{ fontSize: '16px' }} />, 
-              label: 'Dashboard',
-              style: { margin: '4px 0' }
+            {
+              type: 'group',
+              label: 'Tổng quan',
+              children: [
+                { 
+                  key: 'dashboard', 
+                  icon: <DashboardOutlined style={{ fontSize: '16px' }} />, 
+                  label: 'Dashboard',
+                  style: { margin: '4px 0' }
+                },
+              ]
             },
-            { 
-              key: 'users/list', 
-              icon: <UserOutlined style={{ fontSize: '16px' }} />, 
-              label: 'Người dùng',
-              style: { margin: '4px 0' }
+            {
+              type: 'group',
+              label: 'Quản lý người dùng',
+              children: [
+                { 
+                  key: 'users/list', 
+                  icon: <UserOutlined style={{ fontSize: '16px' }} />, 
+                  label: 'Người dùng',
+                  style: { margin: '4px 0' }
+                },
+              ]
             },
-            { 
-              key: 'categories', 
-              icon: <AppstoreOutlined style={{ fontSize: '16px' }} />, 
-              label: 'Danh mục',
-              style: { margin: '4px 0' }
+            {
+              type: 'group',
+              label: 'Quản lý sản phẩm',
+              children: [
+                { 
+                  key: 'categories', 
+                  icon: <AppstoreOutlined style={{ fontSize: '16px' }} />, 
+                  label: 'Danh mục',
+                  style: { margin: '4px 0' }
+                },
+                { 
+                  key: 'products', 
+                  icon: <DatabaseOutlined style={{ fontSize: '16px' }} />, 
+                  label: 'Sản phẩm',
+                  style: { margin: '4px 0' }
+                },
+                { 
+                  key: 'authors', 
+                  icon: <EditOutlined style={{ fontSize: '16px' }} />, 
+                  label: 'Tác giả',
+                  style: { margin: '4px 0' }
+                },
+              ]
             },
-            { 
-              key: 'products', 
-              icon: <DatabaseOutlined style={{ fontSize: '16px' }} />, 
-              label: 'Sản phẩm',
-              style: { margin: '4px 0' }
-            },
-            { 
-              key: 'authors', 
-              icon: <EditOutlined style={{ fontSize: '16px' }} />, 
-              label: 'Tác giả',
-              style: { margin: '4px 0' }
-            },
-            { 
-              key: 'coupons', 
-              icon: <TagOutlined style={{ fontSize: '16px' }} />, 
-              label: 'Mã giảm giá',
-              style: { margin: '4px 0' }
-            },
-            { 
-              key: 'orders', 
-              icon: <ShoppingCartOutlined style={{ fontSize: '16px' }} />, 
-              label: 'Đơn hàng',
-              style: { margin: '4px 0' }
-            },
-            { 
-              key: 'flashsales', 
-              icon: <BookOutlined style={{ fontSize: '16px' }} />, 
-              label: 'Flash Sales',
-              style: { margin: '4px 0' }
+            {
+              type: 'group',
+              label: 'Quản lý bán hàng',
+              children: [
+                { 
+                  key: 'orders', 
+                  icon: <ShoppingCartOutlined style={{ fontSize: '16px' }} />, 
+                  label: 'Đơn hàng',
+                  style: { margin: '4px 0' }
+                },
+                { 
+                  key: 'coupons', 
+                  icon: <TagOutlined style={{ fontSize: '16px' }} />, 
+                  label: 'Mã giảm giá',
+                  style: { margin: '4px 0' }
+                },
+                { 
+                  key: 'flashsales', 
+                  icon: <BookOutlined style={{ fontSize: '16px' }} />, 
+                  label: 'Flash Sales',
+                  style: { margin: '4px 0' }
+                },
+              ]
             },
           ]}
         />

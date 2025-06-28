@@ -1,5 +1,6 @@
-import React from 'react';
-import { Card, Row, Col, Statistic, Table, Progress, Tag } from 'antd';
+import React, { useState } from 'react';
+import { Card, Row, Col, Statistic, Table, Progress, Tag, DatePicker, Space } from 'antd';
+import locale from 'antd/es/date-picker/locale/vi_VN';
 import { UserOutlined, BookOutlined, ShoppingCartOutlined, DollarOutlined, BarChartOutlined, EyeOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { userService } from '../../../services/user.service';
@@ -13,10 +14,13 @@ const DashboardPage: React.FC = () => {
     queryFn: userService.getAll
   });
 
-  const { data: books } = useQuery({
+  const { data: booksResponse } = useQuery({
     queryKey: ['books'],
     queryFn: bookService.getAll
   });
+  
+  // Debug log để xem cấu trúc dữ liệu trả về
+  console.log('Books Response Structure:', booksResponse);
 
   const { data: orders } = useQuery({
     queryKey: ['orders'],
@@ -28,22 +32,34 @@ const DashboardPage: React.FC = () => {
     queryFn: categoryService.getAll
   });
 
-  // Debug log
-  console.log('Dashboard - Raw responses:', { users, books, orders, categories });
-  
   // Xử lý response
   let userList = [];
   if (Array.isArray(users)) {
     userList = users;
   } else if (users && users.data && Array.isArray(users.data)) {
     userList = users.data;
+  } else if (users && users.results && Array.isArray(users.results)) {
+    userList = users.results;
   }
   
   let bookList = [];
-  if (Array.isArray(books)) {
-    bookList = books;
-  } else if (books && books.data && Array.isArray(books.data)) {
-    bookList = books.data;
+  if (Array.isArray(booksResponse)) {
+    bookList = booksResponse;
+  } else if (booksResponse && Array.isArray(booksResponse.data)) {
+    bookList = booksResponse.data;
+  } else if (booksResponse && booksResponse.data && Array.isArray(booksResponse.data.data)) {
+    bookList = booksResponse.data.data;
+  } else if (booksResponse && booksResponse.data && Array.isArray(booksResponse.data.results)) {
+    bookList = booksResponse.data.results;
+  } else if (booksResponse && booksResponse.data && typeof booksResponse.data === 'object') {
+    // Nếu không tìm thấy mảng, log ra để debug
+    console.log('Book data structure:', booksResponse.data);
+    // Thử lấy tất cả các thuộc tính là mảng
+    const possibleArrays = Object.values(booksResponse.data).filter(val => Array.isArray(val));
+    if (possibleArrays.length > 0) {
+      bookList = possibleArrays[0];
+      console.log('Found possible book array:', bookList);
+    }
   }
   
   let orderList = [];
@@ -51,6 +67,8 @@ const DashboardPage: React.FC = () => {
     orderList = orders;
   } else if (orders && orders.data && Array.isArray(orders.data)) {
     orderList = orders.data;
+  } else if (orders && orders.results && Array.isArray(orders.results)) {
+    orderList = orders.results;
   }
   
   let categoryList = [];
@@ -58,12 +76,27 @@ const DashboardPage: React.FC = () => {
     categoryList = categories;
   } else if (categories && categories.data && Array.isArray(categories.data)) {
     categoryList = categories.data;
+  } else if (categories && categories.results && Array.isArray(categories.results)) {
+    categoryList = categories.results;
   }
-  
-  console.log('Dashboard - Final lists:', { userList: userList.length, bookList: bookList.length, orderList: orderList.length, categoryList: categoryList.length });
 
-  const totalRevenue = orderList.reduce((sum, order) => sum + order.total_amount, 0);
-  const recentOrders = orderList.slice(0, 5);
+  const totalRevenue = orderList.reduce((sum, order) => {
+    // Đảm bảo order và total_amount tồn tại và là số
+    const amount = order && typeof order.total_amount === 'number' ? order.total_amount : 0;
+    return sum + amount;
+  }, 0);
+  const [dateRange, setDateRange] = useState<[any, any]>([null, null]);
+  
+  // Lọc đơn hàng theo ngày
+  const filteredOrders = dateRange[0] && dateRange[1] 
+    ? orderList.filter(order => {
+        const orderDate = new Date(order.createdAt || order.order_date);
+        return orderDate >= dateRange[0].startOf('day').toDate() && 
+               orderDate <= dateRange[1].endOf('day').toDate();
+      })
+    : orderList;
+    
+  const recentOrders = filteredOrders.slice(0, 5);
 
   const orderColumns = [
     {
@@ -142,19 +175,11 @@ const DashboardPage: React.FC = () => {
           >
             <Statistic
               title={<span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px' }}>Tổng người dùng</span>}
-              value={userList.length}
+              value={userList.length || 0}
               prefix={<UserOutlined style={{ color: 'white', fontSize: '24px' }} />}
               valueStyle={{ color: 'white', fontSize: '32px', fontWeight: 'bold' }}
             />
-            <div style={{ marginTop: '12px' }}>
-              <Progress 
-                percent={75} 
-                showInfo={false} 
-                strokeColor="rgba(255,255,255,0.3)"
-                trailColor="rgba(255,255,255,0.1)"
-              />
-              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px' }}>+12% so với tháng trước</span>
-            </div>
+
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
@@ -170,19 +195,11 @@ const DashboardPage: React.FC = () => {
           >
             <Statistic
               title={<span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px' }}>Tổng sản phẩm</span>}
-              value={bookList.length}
+              value={bookList.length || 0}
               prefix={<BookOutlined style={{ color: 'white', fontSize: '24px' }} />}
               valueStyle={{ color: 'white', fontSize: '32px', fontWeight: 'bold' }}
             />
-            <div style={{ marginTop: '12px' }}>
-              <Progress 
-                percent={85} 
-                showInfo={false} 
-                strokeColor="rgba(255,255,255,0.3)"
-                trailColor="rgba(255,255,255,0.1)"
-              />
-              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px' }}>+8% so với tháng trước</span>
-            </div>
+
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
@@ -198,19 +215,11 @@ const DashboardPage: React.FC = () => {
           >
             <Statistic
               title={<span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px' }}>Tổng đơn hàng</span>}
-              value={orderList.length}
+              value={orderList.length || 0}
               prefix={<ShoppingCartOutlined style={{ color: 'white', fontSize: '24px' }} />}
               valueStyle={{ color: 'white', fontSize: '32px', fontWeight: 'bold' }}
             />
-            <div style={{ marginTop: '12px' }}>
-              <Progress 
-                percent={92} 
-                showInfo={false} 
-                strokeColor="rgba(255,255,255,0.3)"
-                trailColor="rgba(255,255,255,0.1)"
-              />
-              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px' }}>+25% so với tháng trước</span>
-            </div>
+
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
@@ -232,15 +241,7 @@ const DashboardPage: React.FC = () => {
               valueStyle={{ color: 'white', fontSize: '28px', fontWeight: 'bold' }}
               formatter={(value) => `${Number(value).toLocaleString('vi-VN')}`}
             />
-            <div style={{ marginTop: '12px' }}>
-              <Progress 
-                percent={68} 
-                showInfo={false} 
-                strokeColor="rgba(255,255,255,0.3)"
-                trailColor="rgba(255,255,255,0.1)"
-              />
-              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px' }}>+18% so với tháng trước</span>
-            </div>
+
           </Card>
         </Col>
       </Row>
@@ -250,9 +251,19 @@ const DashboardPage: React.FC = () => {
         <Col xs={24} lg={14}>
           <Card 
             title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <EyeOutlined style={{ color: '#1890ff' }} />
-                <span style={{ fontSize: '18px', fontWeight: '600' }}>Đơn hàng gần đây</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <EyeOutlined style={{ color: '#1890ff' }} />
+                  <span style={{ fontSize: '18px', fontWeight: '600' }}>Đơn hàng gần đây</span>
+                </div>
+                <Space>
+                  <DatePicker.RangePicker 
+                    locale={locale}
+                    onChange={(dates) => setDateRange(dates)}
+                    format="DD/MM/YYYY"
+                    placeholder={['Từ ngày', 'Đến ngày']}
+                  />
+                </Space>
               </div>
             }
             style={{ 
@@ -273,6 +284,20 @@ const DashboardPage: React.FC = () => {
                     <Tag color="blue" style={{ fontWeight: '500' }}>
                       #{id.slice(-6)}
                     </Tag>
+                  ),
+                },
+                {
+                  title: 'Ngày đặt',
+                  dataIndex: 'createdAt',
+                  key: 'createdAt',
+                  render: (date: string) => (
+                    <span>
+                      {new Date(date).toLocaleDateString('vi-VN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })}
+                    </span>
                   ),
                 },
                 {
@@ -343,7 +368,7 @@ const DashboardPage: React.FC = () => {
                   color: 'white'
                 }}>
                   <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '4px' }}>
-                    {categoryList.length}
+                    {categoryList.length || 0}
                   </div>
                   <div style={{ fontSize: '14px', opacity: 0.9 }}>Danh mục</div>
                 </div>
@@ -357,7 +382,7 @@ const DashboardPage: React.FC = () => {
                   color: 'white'
                 }}>
                   <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '4px' }}>
-                    {bookList.filter(book => book.is_available).length}
+                    {bookList.filter(book => book && book.is_available === true).length || 0}
                   </div>
                   <div style={{ fontSize: '14px', opacity: 0.9 }}>Sách có sẵn</div>
                 </div>
@@ -371,7 +396,7 @@ const DashboardPage: React.FC = () => {
                   color: 'white'
                 }}>
                   <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '4px' }}>
-                    {orderList.filter(order => order.status === 'pending').length}
+                    {orderList.filter(order => order && order.status === 'pending').length || 0}
                   </div>
                   <div style={{ fontSize: '14px', opacity: 0.9 }}>Chờ xử lý</div>
                 </div>
@@ -385,7 +410,7 @@ const DashboardPage: React.FC = () => {
                   color: 'white'
                 }}>
                   <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '4px' }}>
-                    {orderList.filter(order => order.status === 'delivered').length}
+                    {orderList.filter(order => order && order.status === 'delivered').length || 0}
                   </div>
                   <div style={{ fontSize: '14px', opacity: 0.9 }}>Đã giao hàng</div>
                 </div>
