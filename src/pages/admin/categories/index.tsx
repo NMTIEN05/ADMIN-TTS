@@ -8,6 +8,7 @@ import {
   Space,
   Popconfirm,
   message,
+  Pagination,
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -19,10 +20,17 @@ const CategoryPage: React.FC = () => {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
+  
+  // Thêm state cho phân trang
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(7); // Mặc định 7 item mỗi trang
+  const [total, setTotal] = useState<number>(0);
 
-  const { data: categories, isLoading, error } = useQuery({
-    queryKey: ["categories"],
-    queryFn: categoryService.getAll
+  const { data: categoriesData, isLoading, error } = useQuery({
+    queryKey: ["categories", currentPage - 1, pageSize],
+    queryFn: () => categoryService.getAll(currentPage - 1, pageSize),
+    staleTime: 0, // Không cache dữ liệu
+    refetchOnWindowFocus: true // Tự động refresh khi focus lại cửa sổ
   });
 
   React.useEffect(() => {
@@ -32,30 +40,40 @@ const CategoryPage: React.FC = () => {
     }
   }, [error]);
 
-  // Debug log
-  console.log('Raw categories response:', categories);
+  // Xử lý dữ liệu phân trang
+  console.log('Raw categories data:', categoriesData);
   
-  // Xử lý response có thể có cấu trúc khác
-  let categoryList = [];
-  if (Array.isArray(categories)) {
-    categoryList = categories;
-  } else if (categories && categories.data && Array.isArray(categories.data)) {
-    categoryList = categories.data;
-  } else if (categories && categories.categories && Array.isArray(categories.categories)) {
-    categoryList = categories.categories;
-  }
+  // Lấy danh sách danh mục và thông tin phân trang
+  const categoryList = categoriesData?.data || [];
   
-  console.log('Final categoryList:', categoryList, 'Length:', categoryList.length);
+  // Cập nhật tổng số item
+  React.useEffect(() => {
+    if (categoriesData?.totalItems !== undefined) {
+      setTotal(categoriesData.totalItems);
+    }
+  }, [categoriesData]);
+  
+  console.log('Category list:', categoryList);
+  console.log('Total items:', total);
 
   const createMutation = useMutation({
     mutationFn: categoryService.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      // Xóa cache và tải lại dữ liệu
+      queryClient.invalidateQueries({ queryKey: ["categories", currentPage - 1, pageSize] });
+      queryClient.refetchQueries({ queryKey: ["categories", currentPage - 1, pageSize] });
+      
       setIsModalOpen(false);
       form.resetFields();
       message.success("Tạo danh mục thành công!");
+      
+      // Thêm timeout để đảm bảo dữ liệu được tải lại
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ["categories", currentPage - 1, pageSize] });
+      }, 500);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error creating category:', error);
       message.error("Tạo danh mục thất bại!");
     },
   });
@@ -64,13 +82,22 @@ const CategoryPage: React.FC = () => {
     mutationFn: ({ id, data }: { id: string; data: CategoryInput }) =>
       categoryService.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      // Xóa cache và tải lại dữ liệu
+      queryClient.invalidateQueries({ queryKey: ["categories", currentPage - 1, pageSize] });
+      queryClient.refetchQueries({ queryKey: ["categories", currentPage - 1, pageSize] });
+      
       setIsModalOpen(false);
       setEditingCategory(null);
       form.resetFields();
       message.success("Cập nhật danh mục thành công!");
+      
+      // Thêm timeout để đảm bảo dữ liệu được tải lại
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ["categories", currentPage - 1, pageSize] });
+      }, 500);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error updating category:', error);
       message.error("Cập nhật danh mục thất bại!");
     },
   });
@@ -78,10 +105,24 @@ const CategoryPage: React.FC = () => {
   const deleteMutation = useMutation({
     mutationFn: categoryService.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      // Xóa cache và tải lại dữ liệu
+      queryClient.invalidateQueries({ queryKey: ["categories", currentPage - 1, pageSize] });
+      queryClient.refetchQueries({ queryKey: ["categories", currentPage - 1, pageSize] });
+      
       message.success("Xóa danh mục thành công!");
+      
+      // Thêm timeout để đảm bảo dữ liệu được tải lại
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ["categories", currentPage - 1, pageSize] });
+        
+        // Nếu xóa item cuối cùng của trang, quay lại trang trước
+        if (categoryList.length === 1 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        }
+      }, 500);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error deleting category:', error);
       message.error("Xóa danh mục thất bại!");
     },
   });
@@ -102,6 +143,12 @@ const CategoryPage: React.FC = () => {
 
   const handleDelete = (id: string) => {
     deleteMutation.mutate(id);
+  };
+  
+  // Hàm xử lý thay đổi trang
+  const handlePageChange = (page: number, pageSize?: number) => {
+    setCurrentPage(page);
+    if (pageSize) setPageSize(pageSize);
   };
 
   const columns = [
@@ -176,7 +223,20 @@ const CategoryPage: React.FC = () => {
         dataSource={categoryList}
         rowKey="_id"
         loading={isLoading}
+        pagination={false} // Tắt phân trang mặc định của Table
       />
+      
+      {/* Component phân trang riêng */}
+      <div style={{ marginTop: 16, textAlign: 'right' }}>
+        <Pagination
+          current={currentPage}
+          pageSize={pageSize}
+          total={total}
+          onChange={handlePageChange}
+          showSizeChanger
+          showTotal={(total) => `Tổng cộng ${total} danh mục`}
+        />  
+      </div>
 
       <Modal
         title={editingCategory ? "Sửa danh mục" : "Thêm danh mục"}

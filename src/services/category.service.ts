@@ -3,10 +3,25 @@ import { API_ENDPOINTS } from '../constants';
 import type { Category, CategoryInput } from '../types/category.type';
 
 export const categoryService = {
-  getAll: async (): Promise<Category[]> => {
-    const response = await apiInstance.get(API_ENDPOINTS.CATEGORIES);
-    console.log('Categories API Response:', response.data);
-    return response.data?.data || [];
+  getAll: async (page: number = 0, limit: number = 7): Promise<any> => {
+    try {
+      const response = await apiInstance.get(`${API_ENDPOINTS.CATEGORIES}?offset=${page}&limit=${limit}`);
+      console.log('Categories API Response:', response);
+      console.log('Categories API Response Data:', response.data);
+      
+      // Backend trả về cấu trúc { data: { data: [...], offset: number, limit: number, totalItems: number, hasMore: boolean }, message: "..." }
+      
+      if (response.data && response.data.data) {
+        // Trả về toàn bộ dữ liệu phân trang
+        return response.data.data;
+      }
+      
+      console.log('No valid data structure found, returning empty object');
+      return { data: [], offset: 0, limit, totalItems: 0, hasMore: false };
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      return { data: [], offset: 0, limit, totalItems: 0, hasMore: false };
+    }
   },
 
   getById: async (id: string): Promise<Category> => {
