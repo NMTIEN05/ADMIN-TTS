@@ -52,7 +52,16 @@ const OrderPage: React.FC = () => {
     }
   });
 
-
+  const returnMutation = useMutation({
+    mutationFn: orderService.returnOrder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      message.success('Hoàn trả đơn hàng thành công!');
+    },
+    onError: () => {
+      message.error('Hoàn trả đơn hàng thất bại!');
+    }
+  });
 
   const handleStatusChange = (orderId: string, status: string) => {
     updateStatusMutation.mutate({ id: orderId, status });
@@ -60,6 +69,10 @@ const OrderPage: React.FC = () => {
 
   const handleCancelOrder = (orderId: string) => {
     cancelMutation.mutate(orderId);
+  };
+  
+  const handleReturnOrder = (orderId: string) => {
+    returnMutation.mutate(orderId);
   };
 
 
@@ -72,10 +85,13 @@ const OrderPage: React.FC = () => {
   const getStatusColor = (status: string) => {
     const colors = {
       pending: 'orange',
+      processing: 'gold',
       confirmed: 'blue',
+      ready_to_ship: 'cyan',
       shipped: 'purple',
       delivered: 'green',
-      cancelled: 'red'
+      cancelled: 'red',
+      returned: 'volcano'
     };
     return colors[status as keyof typeof colors] || 'default';
   };
@@ -83,10 +99,13 @@ const OrderPage: React.FC = () => {
   const getStatusText = (status: string) => {
     const texts = {
       pending: 'Chờ xử lý',
+      processing: 'Đang xử lý',
       confirmed: 'Đã xác nhận',
+      ready_to_ship: 'Sẵn sàng giao',
       shipped: 'Đang giao',
       delivered: 'Đã giao',
-      cancelled: 'Đã hủy'
+      cancelled: 'Đã hủy',
+      returned: 'Đã hoàn trả'
     };
     return texts[status as keyof typeof texts] || status;
   };
@@ -144,14 +163,19 @@ const OrderPage: React.FC = () => {
       render: (status: string, record: OrderWithDetails) => (
         <Select
           value={status}
-          style={{ width: 140 }}
+          style={{ width: 160 }}
           onChange={(value) => handleStatusChange(record._id, value)}
-          disabled={status === 'cancelled' || status === 'delivered'}
+          disabled={status === 'cancelled' || status === 'delivered' || status === 'returned'}
         >
-          <Select.Option value="pending" disabled={['confirmed', 'shipped', 'delivered'].includes(status)}>Chờ xử lý</Select.Option>
-          <Select.Option value="confirmed" disabled={status === 'pending' ? false : ['shipped', 'delivered'].includes(status)}>Đã xác nhận</Select.Option>
-          <Select.Option value="shipped" disabled={!['confirmed'].includes(status)}>Đang giao</Select.Option>
+          <Select.Option value="pending" disabled={['processing', 'confirmed', 'ready_to_ship', 'shipped', 'delivered'].includes(status)}>Chờ xử lý</Select.Option>
+          <Select.Option value="processing" disabled={!['pending'].includes(status)}>Đang xử lý</Select.Option>
+          <Select.Option value="confirmed" disabled={!['pending', 'processing'].includes(status)}>Đã xác nhận</Select.Option>
+          <Select.Option value="ready_to_ship" disabled={!['confirmed'].includes(status)}>Sẵn sàng giao</Select.Option>
+          <Select.Option value="shipped" disabled={!['ready_to_ship'].includes(status)}>Đang giao</Select.Option>
           <Select.Option value="delivered" disabled={!['shipped'].includes(status)}>Đã giao</Select.Option>
+          {status === 'delivered' && (
+            <Select.Option value="returned">Đã hoàn trả</Select.Option>
+          )}
         </Select>
       ),
     },
@@ -167,7 +191,7 @@ const OrderPage: React.FC = () => {
           >
             Xem
           </Button>
-          {record.status !== 'cancelled' && record.status !== 'delivered' && (
+          {record.status !== 'cancelled' && record.status !== 'delivered' && record.status !== 'returned' && (
             <Popconfirm
               title="Bạn có chắc chắn muốn hủy đơn hàng này?"
               onConfirm={() => handleCancelOrder(record._id)}
@@ -176,6 +200,19 @@ const OrderPage: React.FC = () => {
             >
               <Button type="default" danger>
                 Hủy
+              </Button>
+            </Popconfirm>
+          )}
+          
+          {record.status === 'delivered' && (
+            <Popconfirm
+              title="Xác nhận hoàn trả đơn hàng này?"
+              onConfirm={() => handleReturnOrder(record._id)}
+              okText="Có"
+              cancelText="Không"
+            >
+              <Button type="default" style={{ backgroundColor: '#fa8c16', color: 'white' }}>
+                Hoàn trả
               </Button>
             </Popconfirm>
           )}

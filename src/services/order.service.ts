@@ -36,5 +36,10 @@ export const orderService = {
   cancelOrder: async (id: string): Promise<Order> => {
     const response = await apiInstance.patch(API_ENDPOINTS.ORDERS_CANCEL(id));
     return response.data;
+  },
+  
+  returnOrder: async (id: string): Promise<Order> => {
+    const response = await apiInstance.patch(API_ENDPOINTS.ORDERS_RETURN(id));
+    return response.data;
   }
 };

@@ -49,6 +49,7 @@ export const API_ENDPOINTS = {
   ORDERS_DELETE: (id: string) => `/orders/${id}`,
   ORDERS_STATUS: (id: string) => `/orders/status/${id}`,
   ORDERS_CANCEL: (id: string) => `/orders/cancel/${id}`,
+  ORDERS_RETURN: (id: string) => `/orders/return/${id}`,
 
   // Flash sale
   FLASHSALE: '/flashsales',
@@ -68,10 +69,13 @@ export const API_ENDPOINTS = {
 
 export const ORDER_STATUS = {
   PENDING: 'pending',
+  PROCESSING: 'processing',
   CONFIRMED: 'confirmed',
+  READY_TO_SHIP: 'ready_to_ship',
   SHIPPED: 'shipped',
   DELIVERED: 'delivered',
-  CANCELLED: 'cancelled'
+  CANCELLED: 'cancelled',
+  RETURNED: 'returned'
 } as const;
 
 export const COUPON_STATUS = {
