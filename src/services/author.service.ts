@@ -3,10 +3,12 @@ import { API_ENDPOINTS } from '../constants';
 import type { Author, AuthorInput } from '../types/author.type';
 
 export const authorService = {
-  getAll: async (): Promise<Author[]> => {
-    const response = await apiInstance.get(API_ENDPOINTS.AUTHORS);
+  getAll: async (page: number = 0, limit: number = 10): Promise<any> => {
+    const response = await apiInstance.get(`${API_ENDPOINTS.AUTHORS}?offset=${page}&limit=${limit}`);
     console.log('Authors API Response:', response.data);
-    return response.data?.data || [];
+    
+    // Trả về nguyên dữ liệu để component xử lý
+    return response.data;
   },
 
   getById: async (id: string): Promise<Author> => {

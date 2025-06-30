@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Input, Space, Popconfirm, message, Select, InputNumber, Switch, DatePicker, Image, Tabs } from 'antd';
+import { Table, Button, Modal, Form, Input, Space, Popconfirm, message, Select, InputNumber, Switch, DatePicker, Image, Tabs, Pagination } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { bookService } from '../../../services/book.service';
@@ -24,10 +24,15 @@ const ProductPage: React.FC = () => {
   const [variantForm] = Form.useForm();
   const [activeTab, setActiveTab] = useState('active');
   const queryClient = useQueryClient();
+  
+  // State phân trang
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
 
   const { data: books, isLoading } = useQuery({
-    queryKey: ['books'],
-    queryFn: bookService.getAll
+    queryKey: ['books', currentPage - 1, pageSize],
+    queryFn: () => bookService.getAll(currentPage - 1, pageSize)
   });
 
   const { data: deletedBooks, isLoading: isLoadingDeleted } = useQuery({
@@ -47,10 +52,39 @@ const ProductPage: React.FC = () => {
     queryFn: authorService.getAll
   });
 
-  // Xử lý response
-  const bookList = Array.isArray(books?.data?.data) ? books.data.data : Array.isArray(books?.data) ? books.data : [];
-  const categoryList = Array.isArray(categories?.data?.data) ? categories.data.data : Array.isArray(categories?.data) ? categories.data : [];
-  const authorList = Array.isArray(authors?.data?.data) ? authors.data.data : Array.isArray(authors?.data) ? authors.data : [];
+  // Xử lý response và cập nhật tổng số item
+  console.log('Books response structure:', books);
+  console.log('Books data path:', books?.data);
+  console.log('Books data.data path:', books?.data?.data);
+  
+  // Kiểm tra cấu trúc dữ liệu
+  let bookList = [];
+  if (books?.data?.data) {
+    console.log('Using books.data.data');
+    bookList = books.data.data;
+  } else if (books?.data) {
+    console.log('Using books.data');
+    bookList = books.data;
+  }
+  
+  console.log('Final bookList:', bookList);
+  
+  React.useEffect(() => {
+    if (books?.data?.totalItems !== undefined) {
+      setTotal(books.data.totalItems);
+    } else {
+      // Fallback to list length if no totalItems
+      setTotal(bookList.length);
+    }
+  }, [books, bookList]);
+  
+  // Hàm xử lý thay đổi trang
+  const handlePageChange = (page: number, pageSize?: number) => {
+    setCurrentPage(page);
+    if (pageSize) setPageSize(pageSize);
+  };
+  const categoryList = categories?.data?.data || [];
+  const authorList = authors?.data?.data || [];
 
   // Query cho variants
   const { data: variants, refetch: refetchVariants } = useQuery({
@@ -350,13 +384,26 @@ const ProductPage: React.FC = () => {
             key: 'active',
             label: 'Sản phẩm hoạt động',
             children: (
-              <Table 
-                columns={columns} 
-                dataSource={bookList} 
-                rowKey="_id"
-                loading={isLoading}
-                scroll={{ x: 1000 }}
-              />
+              <>
+                <Table 
+                  columns={columns} 
+                  dataSource={bookList} 
+                  rowKey="_id"
+                  loading={isLoading}
+                  scroll={{ x: 1000 }}
+                  pagination={false}
+                />
+                <div style={{ marginTop: 16, textAlign: 'right' }}>
+                  <Pagination
+                    current={currentPage}
+                    pageSize={pageSize}
+                    total={total}
+                    onChange={handlePageChange}
+                    showSizeChanger
+                    showTotal={(total) => `Tổng cộng ${total} sản phẩm`}
+                  />
+                </div>
+              </>
             )
           },
           {
@@ -398,7 +445,7 @@ const ProductPage: React.FC = () => {
                     ),
                   },
                 ]}
-                dataSource={Array.isArray(deletedBooks?.data?.data) ? deletedBooks.data.data : Array.isArray(deletedBooks?.data) ? deletedBooks.data : []}
+                dataSource={deletedBooks?.data?.data || []}
                 rowKey="_id"
                 loading={isLoadingDeleted}
                 scroll={{ x: 1000 }}

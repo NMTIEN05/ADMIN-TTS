@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Input, Space, Popconfirm, message, DatePicker, Avatar } from 'antd';
+import { Table, Button, Modal, Form, Input, Space, Popconfirm, message, DatePicker, Avatar, Pagination } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authorService } from '../../../services/author.service';
@@ -14,23 +14,49 @@ const AuthorPage: React.FC = () => {
   const [detailAuthor, setDetailAuthor] = useState<Author | null>(null);
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
+  
+  // State phân trang
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
 
   const { data: authors, isLoading } = useQuery({
-    queryKey: ['authors'],
-    queryFn: authorService.getAll
+    queryKey: ['authors', currentPage - 1, pageSize],
+    queryFn: () => authorService.getAll(currentPage - 1, pageSize)
   });
 
   // Debug log
   console.log('Raw authors response:', authors);
   
+  // Xử lý response và cập nhật tổng số item
+  console.log('Authors response structure:', authors);
+  console.log('Authors data path:', authors?.data);
+  console.log('Authors data.data path:', authors?.data?.data);
+  
+  // Kiểm tra cấu trúc dữ liệu
   let authorList = [];
-  if (Array.isArray(authors)) {
-    authorList = authors;
-  } else if (authors && authors.data && Array.isArray(authors.data)) {
+  if (authors?.data?.data) {
+    console.log('Using authors.data.data');
+    authorList = authors.data.data;
+  } else if (authors?.data) {
+    console.log('Using authors.data');
     authorList = authors.data;
-  } else if (authors && authors.authors && Array.isArray(authors.authors)) {
-    authorList = authors.authors;
   }
+  
+  React.useEffect(() => {
+    if (authors?.data?.totalItems !== undefined) {
+      setTotal(authors.data.totalItems);
+    } else {
+      // Fallback to list length if no totalItems
+      setTotal(authorList.length);
+    }
+  }, [authors, authorList]);
+  
+  // Hàm xử lý thay đổi trang
+  const handlePageChange = (page: number, pageSize?: number) => {
+    setCurrentPage(page);
+    if (pageSize) setPageSize(pageSize);
+  };
   
   console.log('Final authorList:', authorList.length);
 
@@ -188,12 +214,25 @@ const AuthorPage: React.FC = () => {
         </Button>
       </div>
 
-      <Table 
-        columns={columns} 
-        dataSource={authorList} 
-        rowKey="_id"
-        loading={isLoading}
-      />
+      <>
+        <Table 
+          columns={columns} 
+          dataSource={authorList} 
+          rowKey="_id"
+          loading={isLoading}
+          pagination={false}
+        />
+        <div style={{ marginTop: 16, textAlign: 'right' }}>
+          <Pagination
+            current={currentPage}
+            pageSize={pageSize}
+            total={total}
+            onChange={handlePageChange}
+            showSizeChanger
+            showTotal={(total) => `Tổng cộng ${total} tác giả`}
+          />
+        </div>
+      </>
 
       <Modal
         title={editingAuthor ? 'Sửa tác giả' : 'Thêm tác giả'}
