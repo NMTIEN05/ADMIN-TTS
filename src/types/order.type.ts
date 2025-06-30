@@ -3,7 +3,7 @@ export interface Order {
   user_id: string;
   order_date: string;
   total_amount: number;
-  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'processing' | 'confirmed' | 'ready_to_ship' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
   shipping_address: string;
   payment_method: string;
   payment_status: 'pending' | 'paid' | 'failed';
@@ -15,7 +15,7 @@ export interface Order {
 export interface OrderInput {
   user_id: string;
   total_amount: number;
-  status?: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  status?: 'pending' | 'processing' | 'confirmed' | 'ready_to_ship' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
   shipping_address: string;
   payment_method: string;
   payment_status?: 'pending' | 'paid' | 'failed';

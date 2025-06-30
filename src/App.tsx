@@ -5,6 +5,7 @@ import { router } from './routes';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import AuthHandler from './components/common/AuthHandler';
 import './App.css'
+import './styles/admin.css'
 import axios from 'axios';
 
 function App() {

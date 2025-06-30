@@ -10,6 +10,7 @@ import AuthorPage from "../pages/admin/authors";
 import CouponPage from "../pages/admin/coupons";
 import OrderPage from "../pages/admin/orders";
 import DashboardPage from "../pages/admin/dashboard";
+import FlashSalePage from "@/pages/admin/flash_sale";
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +52,10 @@ export const router = createBrowserRouter([
           {
             path: "orders",
             element: <OrderPage />,
+          },
+          {
+            path: "flashsales",
+            element: <FlashSalePage />,
           },
         ],
       },

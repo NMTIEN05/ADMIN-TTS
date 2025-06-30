@@ -20,6 +20,16 @@ export const userService = {
 
   delete: async (id: string): Promise<void> => {
     await authInstance.delete(`${API_ENDPOINTS.USERS}/${id}`);
+  },
+
+  getDeleted: async (): Promise<User[]> => {
+    const response = await authInstance.get(`${API_ENDPOINTS.USERS}?includeDeleted=true`);
+    return response.data;
+  },
+
+  restore: async (id: string): Promise<User> => {
+    const response = await authInstance.patch(`/auth/users/restore/${id}`);
+    return response.data;
   }
 };
 
@@ -28,3 +38,5 @@ export const getUsers = userService.getAll;
 export const getUserById = userService.getById;
 export const updateUser = userService.update;
 export const deleteUser = userService.delete;
+export const getDeletedUsers = userService.getDeleted;
+export const restoreUser = userService.restore;

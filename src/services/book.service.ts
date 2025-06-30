@@ -3,10 +3,10 @@ import { API_ENDPOINTS } from '../constants';
 import type { Book, BookInput, BookWithDetails } from '../types/book.type';
 
 export const bookService = {
-  getAll: async (): Promise<BookWithDetails[]> => {
+  getAll: async (): Promise<{ data: BookWithDetails[] }> => {
     const response = await apiInstance.get(API_ENDPOINTS.BOOKS);
     console.log('Books API Response:', response.data);
-    return response.data?.data || [];
+    return response.data;
   },
 
   getById: async (id: string): Promise<BookWithDetails> => {
@@ -30,13 +30,18 @@ export const bookService = {
     await apiInstance.delete(API_ENDPOINTS.BOOKS_DELETE(id));
   },
 
-  getDeleted: async (): Promise<BookWithDetails[]> => {
+  getDeleted: async (): Promise<{ data: BookWithDetails[] }> => {
     const response = await apiInstance.get(`${API_ENDPOINTS.BOOKS}?includeDeleted=true`);
-    return response.data?.data || [];
+    console.log('Deleted Books API Response:', response.data);
+    return response.data;
   },
 
   restore: async (id: string): Promise<Book> => {
-    const response = await apiInstance.patch(`/books/restore/${id}`);
+    const response = await apiInstance.patch(`${API_ENDPOINTS.BOOKS}/${id}/restore`);
     return response.data?.data;
+  },
+
+  forceDelete: async (id: string): Promise<void> => {
+    await apiInstance.delete(`${API_ENDPOINTS.BOOKS}/${id}/force`);
   }
 };
