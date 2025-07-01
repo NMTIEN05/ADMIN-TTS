@@ -3,10 +3,12 @@ import { API_ENDPOINTS } from '../constants';
 import type { Order, OrderInput, OrderWithDetails } from '../types/order.type';
 
 export const orderService = {
-  getAll: async (): Promise<OrderWithDetails[]> => {
-    const response = await apiInstance.get(API_ENDPOINTS.ORDERS);
+  getAll: async (page: number = 0, limit: number = 10): Promise<any> => {
+    const response = await apiInstance.get(`${API_ENDPOINTS.ORDERS}?offset=${page}&limit=${limit}`);
     console.log('Orders API Response:', response.data);
-    return response.data?.data || [];
+    
+    // Trả về nguyên dữ liệu để component xử lý
+    return response.data;
   },
 
   getById: async (id: string): Promise<OrderWithDetails> => {

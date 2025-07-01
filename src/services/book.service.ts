@@ -3,9 +3,11 @@ import { API_ENDPOINTS } from '../constants';
 import type { Book, BookInput, BookWithDetails } from '../types/book.type';
 
 export const bookService = {
-  getAll: async (): Promise<{ data: BookWithDetails[] }> => {
-    const response = await apiInstance.get(API_ENDPOINTS.BOOKS);
+  getAll: async (page: number = 0, limit: number = 10): Promise<any> => {
+    const response = await apiInstance.get(`${API_ENDPOINTS.BOOKS}?offset=${page}&limit=${limit}`);
     console.log('Books API Response:', response.data);
+    
+    // Trả về nguyên dữ liệu để component xử lý
     return response.data;
   },
 

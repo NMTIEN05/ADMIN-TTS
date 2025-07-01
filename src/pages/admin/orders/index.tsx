@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Button, Modal, Space, Popconfirm, message, Tag, Select, Descriptions } from 'antd';
+import { Table, Button, Modal, Space, Popconfirm, message, Tag, Select, Descriptions, Pagination } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService } from '../../../services/order.service';
@@ -9,23 +9,49 @@ const OrderPage: React.FC = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(null);
   const queryClient = useQueryClient();
+  
+  // State phân trang
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
 
   const { data: orders, isLoading } = useQuery({
-    queryKey: ['orders'],
-    queryFn: orderService.getAll
+    queryKey: ['orders', currentPage - 1, pageSize],
+    queryFn: () => orderService.getAll(currentPage - 1, pageSize)
   });
 
   // Debug log
   console.log('Raw orders response:', orders);
   
+  // Xử lý response và cập nhật tổng số item
+  console.log('Orders response structure:', orders);
+  console.log('Orders data path:', orders?.data);
+  console.log('Orders data.data path:', orders?.data?.data);
+  
+  // Kiểm tra cấu trúc dữ liệu
   let orderList = [];
-  if (Array.isArray(orders)) {
-    orderList = orders;
-  } else if (orders && orders.data && Array.isArray(orders.data)) {
+  if (orders?.data?.data) {
+    console.log('Using orders.data.data');
+    orderList = orders.data.data;
+  } else if (orders?.data) {
+    console.log('Using orders.data');
     orderList = orders.data;
-  } else if (orders && orders.orders && Array.isArray(orders.orders)) {
-    orderList = orders.orders;
   }
+  
+  React.useEffect(() => {
+    if (orders?.data?.totalItems !== undefined) {
+      setTotal(orders.data.totalItems);
+    } else {
+      // Fallback to list length if no totalItems
+      setTotal(orderList.length);
+    }
+  }, [orders, orderList]);
+  
+  // Hàm xử lý thay đổi trang
+  const handlePageChange = (page: number, pageSize?: number) => {
+    setCurrentPage(page);
+    if (pageSize) setPageSize(pageSize);
+  };
   
   console.log('Final orderList:', orderList.length);
 
@@ -228,13 +254,26 @@ const OrderPage: React.FC = () => {
         <h1>Quản lý đơn hàng</h1>
       </div>
 
-      <Table 
-        columns={columns} 
-        dataSource={orderList} 
-        rowKey="_id"
-        loading={isLoading}
-        scroll={{ x: 1200 }}
-      />
+      <>
+        <Table 
+          columns={columns} 
+          dataSource={orderList} 
+          rowKey="_id"
+          loading={isLoading}
+          scroll={{ x: 1200 }}
+          pagination={false}
+        />
+        <div style={{ marginTop: 16, textAlign: 'right' }}>
+          <Pagination
+            current={currentPage}
+            pageSize={pageSize}
+            total={total}
+            onChange={handlePageChange}
+            showSizeChanger
+            showTotal={(total) => `Tổng cộng ${total} đơn hàng`}
+          />
+        </div>
+      </>
 
       <Modal
         title={`Chi tiết đơn hàng #${selectedOrder?._id.slice(-6)}`}
