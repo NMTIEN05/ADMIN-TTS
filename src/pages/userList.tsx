@@ -173,17 +173,6 @@ const UserList: React.FC = () => {
     <div>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
         <h1>Quản lý người dùng ({userList.length} người dùng)</h1>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />} 
-          onClick={() => {
-            setEditingUser(null);
-            form.resetFields();
-            setIsModalOpen(true);
-          }}
-        >
-          Thêm người dùng
-        </Button>
       </div>
 
       <Table 
