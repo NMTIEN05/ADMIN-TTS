@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Statistic, Table, Progress, Tag, DatePicker, Space } from 'antd';
+import { Card, Row, Col, Statistic, Table, Tag, DatePicker, Space } from 'antd';
 import locale from 'antd/es/date-picker/locale/vi_VN';
 import { UserOutlined, BookOutlined, ShoppingCartOutlined, DollarOutlined, BarChartOutlined, EyeOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
@@ -65,11 +65,25 @@ const DashboardPage: React.FC = () => {
   let orderList = [];
   if (Array.isArray(orders)) {
     orderList = orders;
-  } else if (orders && orders.data && Array.isArray(orders.data)) {
+  } else if (orders && Array.isArray(orders.data)) {
     orderList = orders.data;
+  } else if (orders && orders.data && Array.isArray(orders.data.data)) {
+    orderList = orders.data.data;
+  } else if (orders && orders.data && Array.isArray(orders.data.results)) {
+    orderList = orders.data.results;
   } else if (orders && orders.results && Array.isArray(orders.results)) {
     orderList = orders.results;
+  } else if (orders && typeof orders === 'object') {
+    // Nếu không tìm thấy mảng, log ra để debug
+    console.log('Order data structure:', orders);
+    // Thử lấy tất cả các thuộc tính là mảng
+    const possibleArrays = Object.values(orders).filter(val => Array.isArray(val));
+    if (possibleArrays.length > 0) {
+      orderList = possibleArrays[0];
+      console.log('Found possible order array:', orderList);
+    }
   }
+  console.log('Order list length:', orderList.length, orderList);
   
   let categoryList = [];
   if (Array.isArray(categories)) {
