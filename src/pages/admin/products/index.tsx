@@ -83,7 +83,25 @@ const ProductPage: React.FC = () => {
     setCurrentPage(page);
     if (pageSize) setPageSize(pageSize);
   };
-  const categoryList = categories?.data?.data || [];
+  let categoryList = [];
+  if (Array.isArray(categories)) {
+    categoryList = categories;
+  } else if (categories?.data?.data && Array.isArray(categories.data.data)) {
+    categoryList = categories.data.data;
+  } else if (categories?.data && Array.isArray(categories.data)) {
+    categoryList = categories.data;
+  } else if (categories?.results && Array.isArray(categories.results)) {
+    categoryList = categories.results;
+  } else if (categories && typeof categories === 'object') {
+    // Nếu không tìm thấy mảng, log ra để debug
+    console.log('Category data structure:', categories);
+    const possibleArrays = Object.values(categories).filter(val => Array.isArray(val));
+    if (possibleArrays.length > 0) {
+      categoryList = possibleArrays[0];
+      console.log('Found possible category array:', categoryList);
+    }
+  }
+
   const authorList = authors?.data?.data || [];
 
   // Query cho variants
