@@ -204,7 +204,7 @@ const UserList: React.FC = () => {
             label="Họ tên"
             rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
           >
-            <Input placeholder="Nhập họ tên" />
+            <Input disabled placeholder="Nhập họ tên" />
           </Form.Item>
 
           <Form.Item
@@ -232,7 +232,7 @@ const UserList: React.FC = () => {
             name="phone"
             label="Số điện thoại"
           >
-            <Input placeholder="Nhập số điện thoại" />
+            <Input disabled placeholder="Nhập số điện thoại" />
           </Form.Item>
 
           <Form.Item
